@@ -1,6 +1,6 @@
 version: '3.8'
 services:
-  postgres:
+  catalog-api-db:
     image: postgres:15
     restart: always
     environment:
@@ -10,7 +10,19 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - catalog-api-db:/var/lib/postgresql/data
+  event-processor-db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: event_processor
+    ports:
+      - "5433:5432"
+    volumes:
+      - event-processor-db:/var/lib/postgresql/data
 
 volumes:
-  pgdata:
+  catalog-api-db:
+  event-processor-db:

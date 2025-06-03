@@ -1,7 +1,9 @@
 package db
 
 import (
+	"catalog-api/internal/models"
 	"log"
+	"os"
 
 	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"
@@ -19,6 +21,12 @@ func Connect(dsn string) (*gorm.DB, error) {
 	}
 
 	log.Println("Connected to DB successfully")
+
+	if os.Getenv("ENV") == "dev" {
+		db.AutoMigrate(&models.Category{}, &models.Course{})
+		log.Println("Seeding database...")
+		models.SeedDB(db)
+	}
 
 	return db, nil
 }

@@ -3,7 +3,6 @@ package main
 import (
 	"catalog-api/gql"
 	"catalog-api/internal/db"
-	"catalog-api/internal/models"
 	"fmt"
 	"log"
 	"net/http"
@@ -19,13 +18,6 @@ func main() {
 	db, err := db.Connect(os.Getenv("DATABASE_DSN"))
 	if err != nil {
 		log.Fatalf("failed to open db: %v", err)
-	}
-
-	db.AutoMigrate(&models.Category{}, &models.Course{})
-
-	if os.Getenv("ENV") == "dev" {
-		log.Println("Seeding database...")
-		models.SeedDB(db)
 	}
 
 	srv := handler.NewDefaultServer(gql.NewExecutableSchema(gql.Config{Resolvers: &gql.Resolver{DB: db}}))
