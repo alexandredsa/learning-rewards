@@ -2,7 +2,7 @@ package main
 
 import (
 	"catalog-api/gql"
-	"catalog-api/models"
+	"catalog-api/internal/models"
 	"fmt"
 	"log"
 	"net/http"
@@ -25,7 +25,8 @@ func main() {
 
 	db.AutoMigrate(&models.Category{}, &models.Course{})
 
-	if os.Getenv("SEED") == "true" {
+	if os.Getenv("ENV") == "dev" {
+		log.Println("Seeding database...")
 		models.SeedDB(db)
 	}
 

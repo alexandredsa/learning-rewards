@@ -1,15 +1,18 @@
-type Course {
-  id: ID!
-  title: String!
-  category: Category!
-}
-
 type Category {
   id: ID!
   name: String!
 }
 
+type Course {
+  id: ID!
+  title: String!
+  category: Category!
+  createdAt: Time!
+}
+
+scalar Time
+
 type Query {
-  courses(id: ID): [Course!]!
+  courses(ids: [ID!]): [Course!]!
   categories: [Category!]!
 }

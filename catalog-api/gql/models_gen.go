@@ -2,15 +2,20 @@
 
 package gql
 
+import (
+	"time"
+)
+
 type Category struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 }
 
 type Course struct {
-	ID       string    `json:"id"`
-	Title    string    `json:"title"`
-	Category *Category `json:"category"`
+	ID        string    `json:"id"`
+	Title     string    `json:"title"`
+	Category  *Category `json:"category"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 type Query struct {

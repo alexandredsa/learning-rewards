@@ -7,6 +7,7 @@ toolchain go1.23.9
 require (
 	github.com/99designs/gqlgen v0.17.74
 	github.com/google/uuid v1.6.0
+	github.com/lib/pq v1.10.9
 	github.com/vektah/gqlparser/v2 v2.5.27
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.30.0
