@@ -2,6 +2,7 @@ package main
 
 import (
 	"catalog-api/gql"
+	"catalog-api/internal/db"
 	"catalog-api/internal/models"
 	"fmt"
 	"log"
@@ -10,17 +11,14 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 )
 
 const defaultPort = "8080"
 
 func main() {
-	dsn := "host=localhost user=user password=pass dbname=catalog port=5432 sslmode=disable"
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := db.Connect(os.Getenv("DATABASE_DSN"))
 	if err != nil {
-		log.Fatalf("failed to connect to Postgres: %v", err)
+		log.Fatalf("failed to open db: %v", err)
 	}
 
 	db.AutoMigrate(&models.Category{}, &models.Course{})

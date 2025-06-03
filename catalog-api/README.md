@@ -10,6 +10,7 @@ This is a simple GraphQL API built in Go to serve course and category data from 
 - Docker & Docker Compose
 - `make` (optional, for convenience)
 - `ENV=dev` (for development-only DB seeding)
+- `ENV=DATABASE_DSN` (default: "DATABASE_DSN=postgres://user:pass@localhost:5432/catalog?sslmode=disable")
 
 ---
 

@@ -1,43 +1,24 @@
 package db
 
 import (
-	"database/sql"
-	"fmt"
 	"log"
-	"os"
 
 	_ "github.com/lib/pq"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
-var DB *sql.DB
+func Connect(dsn string) (*gorm.DB, error) {
+	if dsn == "" {
+		dsn = "postgres://user:pass@localhost:5432/catalog?sslmode=disable"
+	}
 
-func Init() {
-	var err error
-
-	connStr := fmt.Sprintf(
-		"host=%s port=%s user=%s dbname=%s sslmode=disable password=%s",
-		getEnv("DB_HOST", "localhost"),
-		getEnv("DB_PORT", "5432"),
-		getEnv("DB_USER", "user"),
-		getEnv("DB_NAME", "catalog"),
-		getEnv("DB_PASSWORD", "pass"),
-	)
-
-	DB, err = sql.Open("postgres", connStr)
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatalf("failed to connect to DB: %v", err)
+		log.Fatalf("failed to connect to Postgres: %v", err)
 	}
 
-	if err = DB.Ping(); err != nil {
-		log.Fatalf("cannot reach DB: %v", err)
-	}
+	log.Println("Connected to DB successfully")
 
-	log.Println("Connected to DB")
-}
-
-func getEnv(key, fallback string) string {
-	if val := os.Getenv(key); val != "" {
-		return val
-	}
-	return fallback
+	return db, nil
 }
