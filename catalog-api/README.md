@@ -13,21 +13,6 @@ This is a simple GraphQL API built in Go to serve course and category data from 
 
 ---
 
-### 📁 Project Structure (Monorepo Example)
-
-```
-learning-rewards/
-│
-├── catalog-api/
-│   ├── gql/               # gqlgen-generated resolvers
-│   ├── models/            # GORM models and seed data
-│   ├── main.go            # App entry point
-│   ├── go.mod             # Go modules
-│   └── gqlgen.yml         # gqlgen config
-```
-
----
-
 ### 🚀 Running Locally
 
 #### 1. Clone the repository
