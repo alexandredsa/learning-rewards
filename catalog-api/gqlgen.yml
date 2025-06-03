@@ -1,0 +1,12 @@
+schema:
+  - gql/schema.graphqls
+exec:
+  filename: gql/generated.go
+  package: gql
+model:
+  filename: gql/models_gen.go
+  package: gql
+resolver:
+  layout: follow-schema
+  dir: gql
+  package: gql

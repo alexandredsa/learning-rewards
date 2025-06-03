@@ -1,0 +1,15 @@
+type Course {
+  id: ID!
+  title: String!
+  category: Category!
+}
+
+type Category {
+  id: ID!
+  name: String!
+}
+
+type Query {
+  courses(id: ID): [Course!]!
+  categories: [Category!]!
+}
