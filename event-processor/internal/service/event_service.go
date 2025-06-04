@@ -10,6 +10,7 @@ import (
 
 type EventService interface {
 	ProcessEvent(ctx context.Context, userID, eventType, courseID string, timestamp time.Time) error
+	GetEventStats(ctx context.Context) ([]repository.EventStat, error)
 }
 
 type eventService struct {
@@ -29,4 +30,8 @@ func (s *eventService) ProcessEvent(ctx context.Context, userID, eventType, cour
 		Timestamp: timestamp,
 	}
 	return s.repo.SaveEvent(ctx, event)
+}
+
+func (s *eventService) GetEventStats(ctx context.Context) ([]repository.EventStat, error) {
+	return s.repo.GetEventStats(ctx)
 }

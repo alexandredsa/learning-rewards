@@ -24,8 +24,9 @@ func main() {
 	repo := repository.NewEventRepository(db)
 	svc := service.NewEventService(repo)
 	server := transport.NewServer(svc)
-
-	http.HandleFunc("/events", server.EventHandler)
+	http.HandleFunc("/events/", func(w http.ResponseWriter, r *http.Request) {
+		server.EventHandler(w, r)
+	})
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))

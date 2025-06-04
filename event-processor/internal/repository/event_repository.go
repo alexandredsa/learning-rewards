@@ -19,6 +19,7 @@ type Event struct {
 
 type EventRepository interface {
 	SaveEvent(ctx context.Context, event Event) error
+	GetEventStats(ctx context.Context) ([]EventStat, error)
 }
 
 type eventRepo struct {
@@ -31,4 +32,20 @@ func NewEventRepository(db *gorm.DB) EventRepository {
 
 func (r *eventRepo) SaveEvent(ctx context.Context, event Event) error {
 	return r.db.WithContext(ctx).Create(&event).Error
+}
+
+type EventStat struct {
+	EventType string `json:"event_type"`
+	Count     int    `json:"count"`
+}
+
+func (r *eventRepo) GetEventStats(ctx context.Context) ([]EventStat, error) {
+	var stats []EventStat
+	err := r.db.WithContext(ctx).
+		Table("events").
+		Select("event_type, COUNT(*) as count").
+		Group("event_type").
+		Scan(&stats).Error
+
+	return stats, err
 }
