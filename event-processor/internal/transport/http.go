@@ -3,17 +3,34 @@ package transport
 import (
 	"encoding/json"
 	"event-processor/internal/service"
-	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/gorilla/mux"
 )
 
 type Server struct {
-	svc service.EventService
+	svc    service.EventService
+	router *mux.Router
 }
 
 func NewServer(svc service.EventService) *Server {
-	return &Server{svc: svc}
+	s := &Server{
+		svc:    svc,
+		router: mux.NewRouter(),
+	}
+	s.setupRoutes()
+	return s
+}
+
+func (s *Server) setupRoutes() {
+	s.router.HandleFunc("/events", s.handleEvent).Methods(http.MethodPost)
+	s.router.HandleFunc("/events/stats", s.handleStats).Methods(http.MethodGet)
+	s.router.HandleFunc("/health", s.handleHealth).Methods(http.MethodGet)
+}
+
+func (s *Server) Router() *mux.Router {
+	return s.router
 }
 
 type EventRequest struct {
@@ -21,18 +38,6 @@ type EventRequest struct {
 	EventType string    `json:"event_type"`
 	CourseID  string    `json:"course_id"`
 	Timestamp time.Time `json:"timestamp"`
-}
-
-func (s *Server) EventHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("EventHandler: %s\n", r.URL.Path)
-	switch r.URL.Path {
-	case "/events/stats":
-		s.handleStats(w, r)
-	case "/events":
-		s.handleEvent(w, r)
-	default:
-		http.Error(w, "Not Found", http.StatusNotFound)
-	}
 }
 
 func (s *Server) handleEvent(w http.ResponseWriter, r *http.Request) {
@@ -60,7 +65,12 @@ func (s *Server) handleStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"status":"stats retrieved"}`))
 	json.NewEncoder(w).Encode(stats)
+}
+
+func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("OK"))
 }

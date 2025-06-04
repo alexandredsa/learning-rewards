@@ -24,13 +24,6 @@ func main() {
 	repo := repository.NewEventRepository(db)
 	svc := service.NewEventService(repo)
 	server := transport.NewServer(svc)
-	http.HandleFunc("/events/", func(w http.ResponseWriter, r *http.Request) {
-		server.EventHandler(w, r)
-	})
-	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK"))
-	})
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -38,7 +31,7 @@ func main() {
 	}
 
 	fmt.Printf("\nEvent Processor running at http://localhost:%s/\n", port)
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
+	if err := http.ListenAndServe(":"+port, server.Router()); err != nil {
 		log.Fatalf("server error: %v", err)
 	}
 }
