@@ -5,12 +5,15 @@ import (
 	"event-processor/internal/repository"
 	"event-processor/internal/service"
 	"event-processor/internal/transport"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 
 	_ "github.com/lib/pq"
 )
+
+const defaultPort = "8081"
 
 func main() {
 	db, err := db.Connect(os.Getenv("DATABASE_DSN"))
@@ -28,8 +31,13 @@ func main() {
 		w.Write([]byte("OK"))
 	})
 
-	log.Println("Listening on :8080")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = defaultPort
+	}
+
+	fmt.Printf("\nEvent Processor running at http://localhost:%s/\n", port)
+	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		log.Fatalf("server error: %v", err)
 	}
 }
