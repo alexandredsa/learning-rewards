@@ -1,3 +1,5 @@
 .vscode
 .pid.*
 */bin
+**/*.bin
+stress-test/results

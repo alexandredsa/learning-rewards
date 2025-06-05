@@ -65,3 +65,14 @@ help:
 	@echo "  make stop   - Stop both applications and databases"
 	@echo "  make clean  - Clean up build artifacts and ensure all processes are stopped"
 	@echo "  make help   - Show this help message"
+
+.PHONY: stress-test install-vegeta clean-stress-test
+
+stress-test:
+	$(MAKE) -C stress-test stress-test
+
+install-vegeta:
+	$(MAKE) -C stress-test install-vegeta
+
+clean-stress-test:
+	$(MAKE) -C stress-test clean-stress-test

@@ -1,0 +1,7 @@
+{
+    "user_id": "abc-123",
+    "event_type": "COURSE_COMPLETED",
+    "course_id": "course-xyz",
+    "timestamp": "2025-06-03T14:00:00Z"
+  }
+  
