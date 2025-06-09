@@ -50,6 +50,7 @@ Example:
 export PORT=8080
 export KAFKA_BROKERS=kafka1:9092,kafka2:9092
 export KAFKA_TOPIC=learning-events
+export DEBUG=1 # if needed
 go run main.go
 ```
 

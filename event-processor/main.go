@@ -1,14 +1,16 @@
 package main
 
 import (
+	"event-processor/internal/logger"
 	"event-processor/internal/messaging/kafka"
 	"event-processor/internal/service"
 	"event-processor/internal/transport"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"strings"
+
+	"go.uber.org/zap"
 )
 
 const (
@@ -18,6 +20,15 @@ const (
 )
 
 func main() {
+	// Initialize logger
+	if err := logger.Init(os.Getenv("DEBUG") != ""); err != nil {
+		panic(fmt.Sprintf("failed to initialize logger: %v", err))
+	}
+	defer logger.Sync()
+
+	log := logger.Get()
+	log.Info("starting event processor service")
+
 	// Get Kafka configuration from environment variables
 	kafkaBrokers := os.Getenv("KAFKA_BROKERS")
 	if kafkaBrokers == "" {
@@ -32,7 +43,7 @@ func main() {
 	// Initialize Kafka producer
 	producer, err := kafka.NewProducer(strings.Split(kafkaBrokers, ","), kafkaTopic)
 	if err != nil {
-		log.Fatalf("failed to create Kafka producer: %v", err)
+		log.Fatal("failed to create Kafka producer", zap.Error(err))
 	}
 	defer producer.Close()
 
@@ -44,10 +55,12 @@ func main() {
 		port = defaultPort
 	}
 
-	fmt.Printf("\nEvent Processor running at http://localhost:%s/\n", port)
-	fmt.Printf("Publishing events to Kafka topic: %s\n", kafkaTopic)
+	log.Info("event processor service started",
+		zap.String("port", port),
+		zap.String("kafka_topic", kafkaTopic),
+	)
 
 	if err := http.ListenAndServe(":"+port, server.Router()); err != nil {
-		log.Fatalf("server error: %v", err)
+		log.Fatal("server error", zap.Error(err))
 	}
 }
