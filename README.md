@@ -31,7 +31,7 @@ The project uses a microservices architecture with the following components:
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/learning-rewards.git
+git clone https://github.com/alexandredsa/learning-rewards.git
 cd learning-rewards
 ```
 
