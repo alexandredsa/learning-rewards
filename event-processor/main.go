@@ -15,7 +15,7 @@ import (
 
 const (
 	defaultPort         = "8081"
-	defaultKafkaBrokers = "localhost:9092"
+	defaultKafkaBrokers = "localhost:29092"
 	defaultKafkaTopic   = "platform-events"
 )
 

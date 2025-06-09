@@ -17,7 +17,7 @@ run:
 	@echo "Starting Catalog API..."
 	cd catalog-api && DATABASE_DSN="postgres://user:pass@localhost:5432/catalog?sslmode=disable" ENV=dev PORT=8080 ./bin/catalog-api & echo $$! > .pid.catalog-api
 	@echo "Starting Event Processor..."
-	cd event-processor && DATABASE_DSN="postgres://user:pass@localhost:5433/event_processor?sslmode=disable" ENV=dev PORT=8081 ./bin/event-processor & echo $$! > .pid.event-processor
+	cd event-processor && DATABASE_DSN="postgres://user:pass@localhost:5433/event_processor?sslmode=disable" ENV=dev PORT=8081 KAFKA_BROKERS="localhost:29092" KAFKA_TOPIC="platform-events" ./bin/event-processor & echo $$! > .pid.event-processor
 	@echo "Applications are running!"
 	@echo "Catalog API: http://localhost:8080"
 	@echo "Event Processor: http://localhost:8081/health"
