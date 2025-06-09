@@ -43,7 +43,7 @@ The service can be configured using the following environment variables:
 |----------|-------------|---------|
 | `PORT` | HTTP server port | `8081` |
 | `KAFKA_BROKERS` | Comma-separated list of Kafka broker addresses | `localhost:9092` |
-| `KAFKA_TOPIC` | Kafka topic name for events | `platform-events` |
+| `KAFKA_TOPIC` | Kafka topic name for events | `learning-events` |
 
 Example:
 ```bash

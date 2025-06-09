@@ -4,7 +4,6 @@ import (
 	"context"
 	"os"
 	"os/signal"
-	"strconv"
 	"strings"
 	"syscall"
 
@@ -55,15 +54,6 @@ func getEnv(key, defaultValue string) string {
 	return defaultValue
 }
 
-func getEnvInt(key string, defaultValue int) int {
-	if value, exists := os.LookupEnv(key); exists {
-		if intValue, err := strconv.Atoi(value); err == nil {
-			return intValue
-		}
-	}
-	return defaultValue
-}
-
 func main() {
 	// Initialize logger
 	if err := logger.Initialize(logger.Config{
@@ -77,16 +67,7 @@ func main() {
 	log := logger.Get()
 
 	// Initialize database
-	dbCfg := database.Config{
-		Host:     getEnv("DB_HOST", "localhost"),
-		Port:     getEnvInt("DB_PORT", 5432),
-		User:     getEnv("DB_USER", "postgres"),
-		Password: getEnv("DB_PASSWORD", "postgres"),
-		DBName:   getEnv("DB_NAME", "rewards"),
-		SSLMode:  getEnv("DB_SSL_MODE", "disable"),
-	}
-
-	db, err := database.NewDB(dbCfg)
+	db, err := database.Connect(getEnv("DATABASE_DSN", ""))
 	if err != nil {
 		log.Fatal("Failed to initialize database", zap.Error(err))
 	}

@@ -8,6 +8,7 @@ build:
 	@echo "Building applications..."
 	cd catalog-api && go build -o bin/catalog-api
 	cd event-processor && go build -o bin/event-processor
+	cd reward-processor && go build -o bin/reward-processor
 
 # Start databases and run both applications
 run:
@@ -17,15 +18,18 @@ run:
 	@echo "Starting Catalog API..."
 	cd catalog-api && DATABASE_DSN="postgres://user:pass@localhost:5432/catalog?sslmode=disable" ENV=dev PORT=8080 ./bin/catalog-api & echo $$! > .pid.catalog-api
 	@echo "Starting Event Processor..."
-	cd event-processor && DATABASE_DSN="postgres://user:pass@localhost:5433/event_processor?sslmode=disable" ENV=dev PORT=8081 KAFKA_BROKERS="localhost:29092" KAFKA_TOPIC="platform-events" ./bin/event-processor & echo $$! > .pid.event-processor
+	cd event-processor && ENV=dev PORT=8081 KAFKA_BROKERS="localhost:29092" KAFKA_TOPIC="learning-events" ./bin/event-processor & echo $$! > .pid.event-processor
+	@echo "Starting Reward Processor..."
+	cd reward-processor && DATABASE_DSN="postgres://user:pass@localhost:5433/event_rewards?sslmode=disable" ENV=dev PORT=8082 KAFKA_BROKERS="localhost:29092" KAFKA_TOPIC="learning-events" ./bin/reward-processor & echo $$! > .pid.reward-processor
 	@echo "Applications are running!"
 	@echo "Catalog API: http://localhost:8080"
 	@echo "Event Processor: http://localhost:8081/health"
+	@echo "Reward Processor: http://localhost:8082/health"
 
 # Stop both applications and databases
 stop:
 	@echo "Stopping applications..."
-	@for pid_file in catalog-api/.pid.catalog-api event-processor/.pid.event-processor; do \
+	@for pid_file in catalog-api/.pid.catalog-api event-processor/.pid.event-processor reward-processor/.pid.reward-processor; do \
 		if [ -f "$$pid_file" ]; then \
 			pid=$$(cat "$$pid_file"); \
 			if ps -p $$pid > /dev/null; then \
@@ -46,9 +50,9 @@ stop:
 # Clean up build artifacts and ensure processes are stopped
 clean: stop
 	@echo "Cleaning up..."
-	rm -rf catalog-api/bin event-processor/bin
+	rm -rf catalog-api/bin event-processor/bin reward-processor/bin
 	@# Double check if any processes are still running on our ports
-	@for port in 8080 8081; do \
+	@for port in 8080 8081 8082; do \
 		pid=$$(lsof -ti:$$port 2>/dev/null); \
 		if [ ! -z "$$pid" ]; then \
 			echo "Found process $$pid still running on port $$port, killing..."; \

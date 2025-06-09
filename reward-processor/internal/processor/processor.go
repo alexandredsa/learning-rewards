@@ -37,7 +37,6 @@ func New(cfg Config, eventRepo repository.UserEventRepository, logger *zap.Logge
 		cfg.KafkaBrokers,
 		cfg.ConsumerGroup,
 		cfg.ConsumerTopics,
-		logger,
 	)
 	if err != nil {
 		return nil, err
@@ -47,7 +46,6 @@ func New(cfg Config, eventRepo repository.UserEventRepository, logger *zap.Logge
 	producer, err := kafka.NewProducer(
 		cfg.KafkaBrokers,
 		cfg.ProducerTopic,
-		logger,
 	)
 	if err != nil {
 		consumer.Close()

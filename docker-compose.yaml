@@ -12,6 +12,18 @@ services:
     volumes:
       - catalog-api-db:/var/lib/postgresql/data
 
+  event-rewards-db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: event_rewards
+    ports:
+      - "5433:5432"
+    volumes:
+      - event-rewards-db:/var/lib/postgresql/data
+
   kafka:
     image: bitnami/kafka:latest
     container_name: kafka
@@ -51,4 +63,4 @@ services:
 
 volumes:
   catalog-api-db:
-  event-processor-db:
+  event-rewards-db:

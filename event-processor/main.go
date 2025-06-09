@@ -16,7 +16,7 @@ import (
 const (
 	defaultPort         = "8081"
 	defaultKafkaBrokers = "localhost:29092"
-	defaultKafkaTopic   = "platform-events"
+	defaultKafkaTopic   = "learning-events"
 )
 
 func main() {

@@ -1,9 +1,10 @@
 # Learning-Rewards
 
-A microservices-based project that implements a catalog system with event processing capabilities. The project consists of two main services:
+A microservices-based project that implements a catalog system with event processing and reward management capabilities. The project consists of three main services:
 
 - **Catalog API**: A GraphQL API service that manages the catalog data
 - **Event Processor**: A service that handles event processing and publishes events to Kafka
+- **Reward Processor**: A service that processes events to manage and distribute rewards to users
 
 ## Architecture
 
@@ -12,6 +13,7 @@ The project uses a microservices architecture with the following components:
 - PostgreSQL databases (one for each service)
 - GraphQL API (using gqlgen)
 - Event processing service with Kafka integration
+- Reward processing service for managing user rewards
 - Docker for containerization
 
 ### Event Processing Flow
@@ -19,7 +21,8 @@ The project uses a microservices architecture with the following components:
 1. Events are received via HTTP POST requests to the Event Processor
 2. Events are validated and transformed into a standardized format
 3. Events are published to Kafka topics for further processing
-4. Other services can consume these events for their specific needs
+4. The Reward Processor consumes these events to manage user rewards
+5. Other services can consume these events for their specific needs
 
 ## Prerequisites
 
@@ -72,7 +75,14 @@ This will:
 - Health check endpoint at http://localhost:8081/health
 - Events endpoint at http://localhost:8081/events
 - Uses PostgreSQL database on port 5433
-- Publishes events to Kafka topic `platform-events`
+- Publishes events to Kafka topic `learning-events`
+
+### Reward Processor
+- Runs on port 8082
+- Health check endpoint at http://localhost:8082/health
+- Consumes events from Kafka topic `learning-events`
+- Uses PostgreSQL database on port 5434
+- Processes events to manage and distribute rewards to users
 
 ### Kafka
 - Runs in KRaft mode (no ZooKeeper dependency)
@@ -104,13 +114,20 @@ The project uses environment variables for configuration:
 - `DATABASE_DSN`: Database connection string
 - `PORT`: Service port (defaults to 8081)
 - `KAFKA_BROKERS`: Comma-separated list of Kafka broker addresses (defaults to "localhost:29092")
-- `KAFKA_TOPIC`: Kafka topic name (defaults to "platform-events")
+- `KAFKA_TOPIC`: Kafka topic name (defaults to "learning-events")
 - `DEBUG`: Enable debug logging when set
 
 ### Catalog API Environment Variables
 - `DATABASE_DSN`: Database connection string
 - `PORT`: Service port (defaults to 8080)
 - `ENV`: Environment (e.g., dev, prod)
+
+### Reward Processor Environment Variables
+- `DATABASE_DSN`: Database connection string
+- `PORT`: Service port (defaults to 8082)
+- `KAFKA_BROKERS`: Comma-separated list of Kafka broker addresses (defaults to "localhost:29092")
+- `KAFKA_TOPIC`: Kafka topic name (defaults to "learning-events")
+- `DEBUG`: Enable debug logging when set
 
 To stop all services:
 ```bash
