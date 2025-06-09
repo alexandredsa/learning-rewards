@@ -47,6 +47,9 @@ This will:
 - `make stop` - Stop both applications and databases
 - `make clean` - Clean up build artifacts
 - `make help` - Show all available commands
+- `make stress-test` – Run Vegeta load test
+- `make install-vegeta` – Install Vegeta CLI
+- `make clean-stress-test` – Clean stress test results
 
 ## Services
 
