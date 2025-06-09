@@ -25,7 +25,6 @@ func NewServer(svc service.EventService) *Server {
 
 func (s *Server) setupRoutes() {
 	s.router.HandleFunc("/events", s.handleEvent).Methods(http.MethodPost)
-	s.router.HandleFunc("/events/stats", s.handleStats).Methods(http.MethodGet)
 	s.router.HandleFunc("/health", s.handleHealth).Methods(http.MethodGet)
 }
 
@@ -56,18 +55,6 @@ func (s *Server) handleEvent(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusAccepted)
 	w.Write([]byte(`{"status":"event accepted"}`))
-}
-
-func (s *Server) handleStats(w http.ResponseWriter, r *http.Request) {
-	stats, err := s.svc.GetEventStats(r.Context())
-	if err != nil {
-		http.Error(w, "Internal Server Error: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(stats)
 }
 
 func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {

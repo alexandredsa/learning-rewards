@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type Event struct {
+type LearningEvent struct {
 	ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
 	UserID    string    `gorm:"not null"`
 	EventType string    `gorm:"not null"`
