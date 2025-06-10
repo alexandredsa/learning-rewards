@@ -52,6 +52,7 @@ func TestEvaluateEvent_SingleEventRule(t *testing.T) {
 		name          string
 		event         models.UserEvent
 		expectedCount int
+		stubCount     int
 	}{
 		{
 			name: "matching event triggers reward",
@@ -62,6 +63,17 @@ func TestEvaluateEvent_SingleEventRule(t *testing.T) {
 				Timestamp: time.Now(),
 			},
 			expectedCount: 1,
+		},
+		{
+			name: "matching event but exceeds counts doesn't trigger",
+			event: models.UserEvent{
+				UserID:    "user-001",
+				EventType: "COURSE_COMPLETED",
+				Category:  "MATH",
+				Timestamp: time.Now(),
+			},
+			expectedCount: 0,
+			stubCount:     10,
 		},
 		{
 			name: "non-matching event type doesn't trigger",
@@ -87,6 +99,8 @@ func TestEvaluateEvent_SingleEventRule(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			stubRepo := &stubUserEventRepository{getCount: tt.stubCount}
+			engine := rules.NewEngine([]models.Rule{rule}, stubRepo, logger)
 			triggered, err := engine.EvaluateEvent(context.Background(), tt.event)
 			assert.NoError(t, err)
 			assert.Len(t, triggered, tt.expectedCount)
