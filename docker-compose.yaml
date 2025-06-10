@@ -1,28 +1,79 @@
 version: '3.8'
 services:
-  catalog-api-db:
+  catalog-api:
+    build:
+      context: ./catalog-api
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_DSN=postgres://user:pass@postgres:5432/catalog-api?sslmode=disable
+      - PORT=8080
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  event-processor:
+    build:
+      context: ./event-processor
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      - PORT=8081
+      - KAFKA_BROKERS=kafka:9092
+      - KAFKA_TOPIC=learning-events
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  reward-processor:
+    build:
+      context: ./reward-processor
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+    environment:
+      - DATABASE_DSN=postgres://user:pass@postgres:5432/rewards?sslmode=disable
+      - PORT=8082
+      - KAFKA_BROKERS=kafka:9092
+      - KAFKA_CONSUMER_TOPICS=learning-events
+      - KAFKA_CONSUMER_GROUP=reward-processor
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+  postgres:
     image: postgres:15
     restart: always
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: pass
-      POSTGRES_DB: catalog
+      POSTGRES_DB: postgres
     ports:
       - "5432:5432"
     volumes:
-      - catalog-api-db:/var/lib/postgresql/data
-
-  event-rewards-db:
-    image: postgres:15
-    restart: always
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: pass
-      POSTGRES_DB: event_rewards
-    ports:
-      - "5433:5432"
-    volumes:
-      - event-rewards-db:/var/lib/postgresql/data
+      - postgres:/var/lib/postgresql/data
+    entrypoint: >
+      bash -c '
+        docker-entrypoint.sh postgres &
+        until pg_isready -U user; do
+          echo "Waiting for PostgreSQL to be ready..."
+          sleep 1
+        done;
+        psql -v ON_ERROR_STOP=1 --username "$$POSTGRES_USER" --dbname "postgres" -c "CREATE DATABASE catalog-api;"
+        psql -v ON_ERROR_STOP=1 --username "$$POSTGRES_USER" --dbname "postgres" -c "CREATE DATABASE rewards;"
+        psql -v ON_ERROR_STOP=1 --username "$$POSTGRES_USER" --dbname "postgres" -c "GRANT ALL PRIVILEGES ON DATABASE \"catalog-api\" TO \"$$POSTGRES_USER\";"
+        psql -v ON_ERROR_STOP=1 --username "$$POSTGRES_USER" --dbname "postgres" -c "GRANT ALL PRIVILEGES ON DATABASE \"rewards\" TO \"$$POSTGRES_USER\";"
+        wait
+      '
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user && psql -U user -d catalog-api -c '\\q' && psql -U user -d rewards -c '\\q'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   kafka:
     image: bitnami/kafka:latest
@@ -62,5 +113,4 @@ services:
         condition: service_healthy
 
 volumes:
-  catalog-api-db:
-  event-rewards-db:
+  postgres:

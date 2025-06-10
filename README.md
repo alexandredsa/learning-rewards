@@ -26,9 +26,8 @@ The project uses a microservices architecture with the following components:
 
 ## Prerequisites
 
-- Go 1.x
 - Docker and Docker Compose
-- Make
+- Make (optional, for using Makefile commands)
 
 ## Getting Started
 
@@ -38,25 +37,29 @@ git clone https://github.com/alexandredsa/learning-rewards.git
 cd learning-rewards
 ```
 
-2. Start the services:
+2. Start all services using Docker Compose:
 ```bash
 make
 ```
 
+Or manually:
+```bash
+docker-compose up -d
+```
+
 This will:
+- Build all service images
 - Start the PostgreSQL databases
 - Start Kafka and Kafka UI
-- Build both services
-- Run the Catalog API on port 8080
-- Run the Event Processor on port 8081
+- Start all services in the correct order
 
 ## Available Commands
 
-- `make` - Build and run both applications
-- `make build` - Build both applications
-- `make run` - Start databases, Kafka, and run both applications
-- `make stop` - Stop both applications, databases, and Kafka
-- `make clean` - Clean up build artifacts
+- `make` - Build and run all services
+- `make build` - Build all Docker images
+- `make run` - Start all services using Docker Compose
+- `make stop` - Stop all services
+- `make clean` - Clean up Docker resources and remove unused images
 - `make help` - Show all available commands
 - `make stress-test` – Run Vegeta load test
 - `make install-vegeta` – Install Vegeta CLI
@@ -68,21 +71,29 @@ This will:
 - Runs on port 8080
 - GraphQL playground available at http://localhost:8080
 - GraphQL endpoint at http://localhost:8080/query
-- Uses PostgreSQL database on port 5432
+- Uses PostgreSQL database 'catalog-api'
 
 ### Event Processor
 - Runs on port 8081
 - Health check endpoint at http://localhost:8081/health
 - Events endpoint at http://localhost:8081/events
-- Uses PostgreSQL database on port 5433
+- Uses PostgreSQL database 'rewards'
 - Publishes events to Kafka topic `learning-events`
 
 ### Reward Processor
 - Runs on port 8082
 - Health check endpoint at http://localhost:8082/health
 - Consumes events from Kafka topic `learning-events`
-- Uses PostgreSQL database on port 5434
-- Processes events to manage and distribute rewards to users
+- Uses PostgreSQL database 'rewards'
+
+### PostgreSQL
+- Single instance running on port 5432
+- Contains two databases:
+  - `catalog-api`: Used by the Catalog API service
+  - `rewards`: Used by both Event Processor and Reward Processor services
+- Credentials:
+  - User: user
+  - Password: pass
 
 ### Kafka
 - Runs in KRaft mode (no ZooKeeper dependency)
@@ -108,33 +119,34 @@ Events are published to Kafka in the following JSON format:
 
 ## Development
 
-The project uses environment variables for configuration:
+The project uses Docker Compose for service orchestration and environment configuration. All services are containerized and can be managed using Docker Compose commands.
 
-### Event Processor Environment Variables
-- `DATABASE_DSN`: Database connection string
-- `PORT`: Service port (defaults to 8081)
-- `KAFKA_BROKERS`: Comma-separated list of Kafka broker addresses (defaults to "localhost:29092")
-- `KAFKA_TOPIC`: Kafka topic name (defaults to "learning-events")
-- `DEBUG`: Enable debug logging when set
+### Environment Configuration
 
-### Catalog API Environment Variables
-- `DATABASE_DSN`: Database connection string
-- `PORT`: Service port (defaults to 8080)
-- `ENV`: Environment (e.g., dev, prod)
+All environment variables are configured in the `docker-compose.yml` file. The services use the following environment variables:
 
-### Reward Processor Environment Variables
-- `DATABASE_DSN`: Database connection string
-- `PORT`: Service port (defaults to 8082)
-- `KAFKA_BROKERS`: Comma-separated list of Kafka broker addresses (defaults to "localhost:29092")
-- `KAFKA_TOPIC`: Kafka topic name (defaults to "learning-events")
-- `DEBUG`: Enable debug logging when set
+#### Catalog API
+- `DATABASE_DSN`: Database connection string (format: postgres://user:pass@postgres:5432/catalog-api?sslmode=disable)
+- `PORT`: Service port (default: 8080)
+
+#### Event Processor
+- `DATABASE_DSN`: Database connection string (format: postgres://user:pass@postgres:5432/rewards?sslmode=disable)
+- `PORT`: Service port (default: 8081)
+- `KAFKA_BROKERS`: Kafka broker address (default: kafka:9092)
+
+#### Reward Processor
+- `DATABASE_DSN`: Database connection string (format: postgres://user:pass@postgres:5432/rewards?sslmode=disable)
+- `PORT`: Service port (default: 8082)
+- `KAFKA_BROKERS`: Kafka broker address (default: kafka:9092)
+- `KAFKA_CONSUMER_TOPICS`: Kafka topic to consume from (default: learning-events)
+- `KAFKA_CONSUMER_GROUP`: Kafka consumer group name (default: reward-processor)
 
 To stop all services:
 ```bash
 make stop
 ```
 
-To clean up build artifacts:
+To clean up all Docker resources:
 ```bash
 make clean
 ```
@@ -155,3 +167,24 @@ curl -X POST http://localhost:8081/events \
 ```
 
 You can monitor the events in Kafka using the Kafka UI at http://localhost:9094
+
+## Docker Commands
+
+Here are some useful Docker commands for development:
+
+```bash
+# View logs for all services
+docker-compose logs -f
+
+# View logs for a specific service
+docker-compose logs -f catalog-api
+
+# Rebuild and restart a specific service
+docker-compose up -d --build catalog-api
+
+# Access a service's shell
+docker-compose exec catalog-api sh
+
+# View running containers
+docker-compose ps
+```
