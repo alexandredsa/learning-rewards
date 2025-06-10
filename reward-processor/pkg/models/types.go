@@ -5,11 +5,6 @@ import "time"
 // RuleType represents the type of rule
 type RuleType string
 
-const (
-	SingleEventRule RuleType = "SINGLE_EVENT"
-	MilestoneRule   RuleType = "MILESTONE"
-)
-
 // RewardType represents the type of reward
 type RewardType string
 
@@ -23,7 +18,7 @@ type Rule struct {
 	ID         string            `json:"id"`
 	Type       RuleType          `json:"type"`
 	EventType  string            `json:"event_type"`
-	Count      int               `json:"count,omitempty"` // Only for MILESTONE rules
+	Count      int               `json:"count,omitempty"`
 	Conditions map[string]string `json:"conditions"`
 	Reward     Reward            `json:"reward"`
 	Enabled    bool              `json:"enabled"`
@@ -57,6 +52,7 @@ type RewardTriggered struct {
 type UserEventCount struct {
 	UserID    string    `json:"user_id" db:"user_id"`
 	EventType string    `json:"event_type" db:"event_type"`
+	Category  string    `json:"category" db:"category"`
 	Count     int       `json:"count" db:"count"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 }

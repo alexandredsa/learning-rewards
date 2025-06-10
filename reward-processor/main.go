@@ -19,11 +19,11 @@ import (
 var mockedRules = []models.Rule{
 	{
 		ID:        "rule-001",
-		Type:      models.SingleEventRule,
 		EventType: "COURSE_COMPLETED",
 		Conditions: map[string]string{
 			"category": "MATH",
 		},
+		Count: 1,
 		Reward: models.Reward{
 			Type:        models.BadgeReward,
 			Description: "Finished a Math course",
@@ -32,7 +32,6 @@ var mockedRules = []models.Rule{
 	},
 	{
 		ID:        "rule-002",
-		Type:      models.MilestoneRule,
 		EventType: "COURSE_COMPLETED",
 		Count:     5,
 		Conditions: map[string]string{
@@ -42,6 +41,30 @@ var mockedRules = []models.Rule{
 			Type:        models.PointsReward,
 			Amount:      100,
 			Description: "Completed 5 math courses",
+		},
+		Enabled: true,
+	},
+	{
+		ID:         "rule-003",
+		EventType:  "COURSE_COMPLETED",
+		Count:      30,
+		Conditions: map[string]string{},
+		Reward: models.Reward{
+			Type:        models.PointsReward,
+			Amount:      30,
+			Description: "Completed 30 courses",
+		},
+		Enabled: true,
+	},
+	{
+		ID:         "rule-004",
+		EventType:  "CHAPTER_COMPLETED",
+		Count:      10,
+		Conditions: map[string]string{},
+		Reward: models.Reward{
+			Type:        models.PointsReward,
+			Amount:      10,
+			Description: "Completed 10 chapters",
 		},
 		Enabled: true,
 	},

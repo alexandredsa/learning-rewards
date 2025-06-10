@@ -13,16 +13,15 @@ import (
 
 // stubUserEventRepository is a simple stub implementation
 type stubUserEventRepository struct {
-	incrementCount int
-	getCount       int
-	err            error
+	getCount int
+	err      error
 }
 
-func (s *stubUserEventRepository) IncrementAndGetCount(ctx context.Context, userID, eventType string) (int, error) {
-	return s.incrementCount, s.err
+func (s *stubUserEventRepository) Increment(ctx context.Context, userID, eventType, category string) error {
+	return s.err
 }
 
-func (s *stubUserEventRepository) GetCount(ctx context.Context, userID, eventType string) (int, error) {
+func (s *stubUserEventRepository) GetCount(ctx context.Context, userID, eventType, category string) (int, error) {
 	return s.getCount, s.err
 }
 
@@ -36,7 +35,6 @@ func TestEvaluateEvent_SingleEventRule(t *testing.T) {
 	// Define a single event rule
 	rule := models.Rule{
 		ID:        "rule-001",
-		Type:      models.SingleEventRule,
 		EventType: "COURSE_COMPLETED",
 		Conditions: map[string]string{
 			"category": "MATH",
@@ -109,7 +107,6 @@ func TestEvaluateEvent_MilestoneRule(t *testing.T) {
 	// Define a milestone rule
 	rule := models.Rule{
 		ID:        "rule-002",
-		Type:      models.MilestoneRule,
 		EventType: "COURSE_COMPLETED",
 		Count:     3,
 		Conditions: map[string]string{
@@ -179,7 +176,7 @@ func TestEvaluateEvent_MilestoneRule(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Create a new stub for each test case
-			stubRepo := &stubUserEventRepository{incrementCount: tt.stubCount}
+			stubRepo := &stubUserEventRepository{getCount: tt.stubCount}
 			engine := rules.NewEngine([]models.Rule{rule}, stubRepo, logger)
 
 			triggered, err := engine.EvaluateEvent(context.Background(), tt.event)
@@ -202,7 +199,6 @@ func TestEvaluateEvent_DisabledRule(t *testing.T) {
 	// Define a disabled rule
 	rule := models.Rule{
 		ID:        "rule-003",
-		Type:      models.SingleEventRule,
 		EventType: "COURSE_COMPLETED",
 		Conditions: map[string]string{
 			"category": "MATH",
@@ -235,7 +231,6 @@ func TestEvaluateEvent_RepositoryError(t *testing.T) {
 	// Define a milestone rule
 	rule := models.Rule{
 		ID:        "rule-004",
-		Type:      models.MilestoneRule,
 		EventType: "COURSE_COMPLETED",
 		Count:     3,
 		Conditions: map[string]string{
@@ -275,8 +270,9 @@ func TestGetMilestoneCount(t *testing.T) {
 
 	userID := "user-001"
 	eventType := "COURSE_COMPLETED"
+	category := "MATH"
 
-	count, err := engine.GetMilestoneCount(context.Background(), userID, eventType)
+	count, err := engine.GetMilestoneCount(context.Background(), userID, eventType, category)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedCount, count)
 }

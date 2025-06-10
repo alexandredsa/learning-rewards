@@ -10,11 +10,16 @@ import (
 
 // UserEventRepository defines the interface for user event count operations
 type UserEventRepository interface {
-	// IncrementAndGetCount increments the count for a user's event and returns the new count
-	IncrementAndGetCount(ctx context.Context, userID, eventType string) (int, error)
+	// Increment increments the count for a user's event
+	Increment(ctx context.Context, userID, eventType, category string) error
 	// GetCount returns the current count for a user's event
-	GetCount(ctx context.Context, userID, eventType string) (int, error)
+	// If category is provided, it will count events with that specific category
+	// If category is empty, it will count all events of that type using GROUP BY
+	GetCount(ctx context.Context, userID, eventType, category string) (int, error)
 }
+
+// Ensure GormUserEventRepository implements UserEventRepository
+var _ UserEventRepository = (*GormUserEventRepository)(nil)
 
 // GormUserEventRepository implements UserEventRepository using GORM
 type GormUserEventRepository struct {
@@ -26,22 +31,23 @@ func NewGormUserEventRepository(db *gorm.DB) *GormUserEventRepository {
 	return &GormUserEventRepository{db: db}
 }
 
-// IncrementAndGetCount implements UserEventRepository
-func (r *GormUserEventRepository) IncrementAndGetCount(ctx context.Context, userID, eventType string) (int, error) {
+// Increment implements UserEventRepository
+func (r *GormUserEventRepository) Increment(ctx context.Context, userID, eventType, category string) error {
 	var count models.UserEventCount
 
 	// Use a transaction to ensure atomicity
 	err := r.db.Transaction(func(tx *gorm.DB) error {
-		// Try to find existing record
+		// Create or update the event count
 		result := tx.WithContext(ctx).
-			Where("user_id = ? AND event_type = ?", userID, eventType).
+			Where("user_id = ? AND event_type = ? AND category = ?", userID, eventType, category).
 			First(&count)
 
 		if result.Error == gorm.ErrRecordNotFound {
-			// Create new record if not found
+			// Create new record
 			count = models.UserEventCount{
 				UserID:    userID,
 				EventType: eventType,
+				Category:  category,
 				Count:     1,
 				UpdatedAt: time.Now(),
 			}
@@ -56,35 +62,35 @@ func (r *GormUserEventRepository) IncrementAndGetCount(ctx context.Context, user
 		count.Count++
 		count.UpdatedAt = time.Now()
 		return tx.Model(&models.UserEventCount{}).
-			Where("user_id = ? AND event_type = ?", userID, eventType).
+			Where("user_id = ? AND event_type = ? AND category = ?", userID, eventType, category).
 			Updates(map[string]interface{}{
 				"count":      count.Count,
 				"updated_at": count.UpdatedAt,
 			}).Error
 	})
 
+	return err
+}
+
+// GetCount implements UserEventRepository
+func (r *GormUserEventRepository) GetCount(ctx context.Context, userID, eventType, category string) (int, error) {
+	var count int64
+
+	query := r.db.WithContext(ctx).Model(&models.UserEventCount{}).
+		Where("user_id = ? AND event_type = ?", userID, eventType)
+
+	if category != "" {
+		// For category-specific rules, get count for that category
+		query = query.Where("category = ?", category)
+	} else {
+		// For generic rules, sum up all counts for this event type
+		query = query.Select("COALESCE(SUM(count), 0)")
+	}
+
+	err := query.Count(&count).Error
 	if err != nil {
 		return 0, err
 	}
 
-	return count.Count, nil
-}
-
-// GetCount implements UserEventRepository
-func (r *GormUserEventRepository) GetCount(ctx context.Context, userID, eventType string) (int, error) {
-	var count models.UserEventCount
-
-	result := r.db.WithContext(ctx).
-		Where("user_id = ? AND event_type = ?", userID, eventType).
-		First(&count)
-
-	if result.Error == gorm.ErrRecordNotFound {
-		return 0, nil
-	}
-
-	if result.Error != nil {
-		return 0, result.Error
-	}
-
-	return count.Count, nil
+	return int(count), nil
 }

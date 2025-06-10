@@ -37,8 +37,20 @@ func (e *Engine) EvaluateEvent(ctx context.Context, event models.UserEvent) ([]m
 	e.logger.Info("Starting event evaluation",
 		zap.String("user_id", event.UserID),
 		zap.String("event_type", event.EventType),
+		zap.String("category", event.Category),
 		zap.Int("total_rules", len(e.rules)))
 
+	// First, increment the event count with its category
+	if err := e.eventRepo.Increment(ctx, event.UserID, event.EventType, event.Category); err != nil {
+		e.logger.Error("Failed to increment event count",
+			zap.String("user_id", event.UserID),
+			zap.String("event_type", event.EventType),
+			zap.String("category", event.Category),
+			zap.Error(err))
+		return nil, err
+	}
+
+	// Then evaluate each rule
 	for _, rule := range e.rules {
 		if !rule.Enabled {
 			e.logger.Debug("Skipping disabled rule",
@@ -66,62 +78,51 @@ func (e *Engine) EvaluateEvent(ctx context.Context, event models.UserEvent) ([]m
 			continue
 		}
 
-		e.logger.Debug("Rule conditions met, evaluating rule type",
+		e.logger.Debug("Rule conditions met, evaluating rule",
 			zap.String("rule_id", rule.ID),
 			zap.String("rule_type", string(rule.Type)),
 			zap.String("user_id", event.UserID))
 
-		switch rule.Type {
-		case models.SingleEventRule:
+		// Get the appropriate count based on rule type
+		ruleCategory := rule.Conditions["category"]
+		count, err := e.eventRepo.GetCount(ctx, event.UserID, event.EventType, ruleCategory)
+		if err != nil {
+			e.logger.Error("Failed to get count",
+				zap.String("user_id", event.UserID),
+				zap.String("rule_id", rule.ID),
+				zap.String("event_type", event.EventType),
+				zap.Error(err))
+			return nil, err
+		}
+
+		e.logger.Debug("Current count for rule",
+			zap.String("user_id", event.UserID),
+			zap.String("rule_id", rule.ID),
+			zap.Int("current_count", count),
+			zap.Int("required_count", rule.Count),
+			zap.String("category", ruleCategory))
+
+		if count == rule.Count {
 			triggered = append(triggered, models.RewardTriggered{
 				UserID:    event.UserID,
 				RuleID:    rule.ID,
 				Reward:    rule.Reward,
 				Timestamp: time.Now(),
 			})
-			e.logger.Info("Single event rule triggered",
+			e.logger.Info("Rule triggered",
 				zap.String("user_id", event.UserID),
 				zap.String("rule_id", rule.ID),
 				zap.String("event", event.EventType),
+				zap.String("category", ruleCategory),
+				zap.Int("count", rule.Count),
 				zap.Any("reward", rule.Reward))
-
-		case models.MilestoneRule:
-			count, err := e.eventRepo.IncrementAndGetCount(ctx, event.UserID, event.EventType)
-			if err != nil {
-				e.logger.Error("Failed to increment milestone count",
-					zap.String("user_id", event.UserID),
-					zap.String("rule_id", rule.ID),
-					zap.String("event_type", event.EventType),
-					zap.Error(err))
-				return nil, err
-			}
-
-			e.logger.Debug("Current milestone count",
-				zap.String("user_id", event.UserID),
-				zap.String("rule_id", rule.ID),
-				zap.Int("current_count", count),
-				zap.Int("required_count", rule.Count))
-
-			if count == rule.Count {
-				triggered = append(triggered, models.RewardTriggered{
-					UserID:    event.UserID,
-					RuleID:    rule.ID,
-					Reward:    rule.Reward,
-					Timestamp: time.Now(),
-				})
-				e.logger.Info("Milestone rule triggered",
-					zap.String("user_id", event.UserID),
-					zap.String("rule_id", rule.ID),
-					zap.String("event", event.EventType),
-					zap.Int("count", rule.Count),
-					zap.Any("reward", rule.Reward))
-			}
 		}
 	}
 
 	e.logger.Info("Completed event evaluation",
 		zap.String("user_id", event.UserID),
 		zap.String("event_type", event.EventType),
+		zap.String("category", event.Category),
 		zap.Int("rules_triggered", len(triggered)))
 
 	return triggered, nil
@@ -142,6 +143,6 @@ func (e *Engine) matchesConditions(event models.UserEvent, conditions map[string
 }
 
 // GetMilestoneCount returns the current count for a user's milestone
-func (e *Engine) GetMilestoneCount(ctx context.Context, userID, eventType string) (int, error) {
-	return e.eventRepo.GetCount(ctx, userID, eventType)
+func (e *Engine) GetMilestoneCount(ctx context.Context, userID, eventType, category string) (int, error) {
+	return e.eventRepo.GetCount(ctx, userID, eventType, category)
 }
