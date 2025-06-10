@@ -36,6 +36,7 @@ type EventRequest struct {
 	UserID    string    `json:"user_id"`
 	EventType string    `json:"event_type"`
 	CourseID  string    `json:"course_id"`
+	Category  string    `json:"category"`
 	Timestamp time.Time `json:"timestamp"`
 }
 
@@ -47,7 +48,7 @@ func (s *Server) handleEvent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	err := s.svc.ProcessEvent(ctx, req.UserID, req.EventType, req.CourseID, req.Timestamp)
+	err := s.svc.ProcessEvent(ctx, req.UserID, req.EventType, req.CourseID, req.Category, req.Timestamp)
 	if err != nil {
 		http.Error(w, "Internal Server Error: "+err.Error(), http.StatusInternalServerError)
 		return

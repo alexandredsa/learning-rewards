@@ -10,7 +10,7 @@ import (
 )
 
 type EventService interface {
-	ProcessEvent(ctx context.Context, userID, eventType, courseID string, timestamp time.Time) error
+	ProcessEvent(ctx context.Context, userID, eventType, courseID, category string, timestamp time.Time) error
 }
 
 type eventService struct {
@@ -21,12 +21,13 @@ func NewEventService(producer *kafka.Producer) EventService {
 	return &eventService{producer: producer}
 }
 
-func (s *eventService) ProcessEvent(ctx context.Context, userID, eventType, courseID string, timestamp time.Time) error {
+func (s *eventService) ProcessEvent(ctx context.Context, userID, eventType, courseID, category string, timestamp time.Time) error {
 	event := models.LearningEvent{
 		ID:        uuid.New(),
 		UserID:    userID,
 		EventType: eventType,
 		CourseID:  courseID,
+		Category:  category,
 		Timestamp: timestamp,
 	}
 
