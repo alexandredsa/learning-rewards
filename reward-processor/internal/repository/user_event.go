@@ -55,7 +55,12 @@ func (r *GormUserEventRepository) IncrementAndGetCount(ctx context.Context, user
 		// Increment existing record
 		count.Count++
 		count.UpdatedAt = time.Now()
-		return tx.Save(&count).Error
+		return tx.Model(&models.UserEventCount{}).
+			Where("user_id = ? AND event_type = ?", userID, eventType).
+			Updates(map[string]interface{}{
+				"count":      count.Count,
+				"updated_at": count.UpdatedAt,
+			}).Error
 	})
 
 	if err != nil {
