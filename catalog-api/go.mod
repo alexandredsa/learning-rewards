@@ -1,8 +1,6 @@
 module catalog-api
 
-go 1.23.0
-
-toolchain go1.23.9
+go 1.24.4
 
 require (
 	github.com/99designs/gqlgen v0.17.74
