@@ -1,6 +1,10 @@
 # Build stage
 FROM golang:1.24.4-alpine AS builder
 
+# Add build argument to force rebuilds
+ARG BUILD_DATE=unknown
+ARG VCS_REF=unknown
+
 WORKDIR /app
 
 # Copy go mod and sum files
@@ -17,6 +21,10 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o event-processor ./main.go
 
 # Final stage
 FROM alpine:latest
+
+# Add build argument to force rebuilds
+ARG BUILD_DATE=unknown
+ARG VCS_REF=unknown
 
 WORKDIR /app
 

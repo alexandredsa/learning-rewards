@@ -1,12 +1,29 @@
-.PHONY: all build run stop clean
+.PHONY: all build run stop clean dev rebuild
 
 # Default target
 all: build run
 
-# Build all services using Docker Compose
+# Build all services using Docker Compose with no cache
 build:
-	@echo "Building Docker images..."
-	docker-compose build
+	@echo "Building Docker images (no cache)..."
+	docker-compose build --no-cache
+
+# Development mode - rebuild and run
+dev:
+	@echo "Building and running in development mode..."
+	docker-compose up --build --force-recreate
+
+# Rebuild a specific service
+# Usage: make rebuild SERVICE=catalog-api
+rebuild:
+	@if [ -z "$(SERVICE)" ]; then \
+		echo "Error: SERVICE argument is required"; \
+		echo "Usage: make rebuild SERVICE=<service-name>"; \
+		echo "Available services: catalog-api, event-processor, reward-processor"; \
+		exit 1; \
+	fi
+	@echo "Rebuilding $(SERVICE)..."
+	docker-compose up -d --build --force-recreate $(SERVICE)
 
 # Start all services using Docker Compose
 run:
@@ -33,12 +50,15 @@ clean: stop
 # Help command
 help:
 	@echo "Available commands:"
-	@echo "  make        - Build and run all services"
-	@echo "  make build  - Build all Docker images"
-	@echo "  make run    - Start all services using Docker Compose"
-	@echo "  make stop   - Stop all services"
-	@echo "  make clean  - Clean up Docker resources and remove unused images"
-	@echo "  make help   - Show this help message"
+	@echo "  make              - Build and run all services"
+	@echo "  make build        - Build all Docker images (no cache)"
+	@echo "  make dev          - Build and run in development mode (forces rebuild)"
+	@echo "  make run          - Start all services using Docker Compose"
+	@echo "  make stop         - Stop all services"
+	@echo "  make clean        - Clean up Docker resources and remove unused images"
+	@echo "  make rebuild SERVICE=<name> - Rebuild and restart a specific service"
+	@echo "                              Available services: catalog-api, event-processor, reward-processor"
+	@echo "  make help         - Show this help message"
 
 .PHONY: stress-test install-vegeta clean-stress-test
 

@@ -56,14 +56,69 @@ This will:
 ## Available Commands
 
 - `make` - Build and run all services
-- `make build` - Build all Docker images
+- `make build` - Build all Docker images (no cache)
+- `make dev` - Build and run in development mode (forces rebuild of all services)
 - `make run` - Start all services using Docker Compose
 - `make stop` - Stop all services
 - `make clean` - Clean up Docker resources and remove unused images
+- `make rebuild SERVICE=<name>` - Rebuild and restart a specific service
+  - Available services: catalog-api, event-processor, reward-processor
 - `make help` - Show all available commands
 - `make stress-test` – Run Vegeta load test
 - `make install-vegeta` – Install Vegeta CLI
 - `make clean-stress-test` – Clean stress test results
+
+## Development Workflow
+
+### Starting Development
+
+1. Start all services in development mode:
+```bash
+make dev
+```
+This will start all services with live logs and force rebuilds.
+
+### Making Changes
+
+When working on a specific service, you can rebuild just that service:
+
+```bash
+# Rebuild catalog-api
+make rebuild SERVICE=catalog-api
+
+# Rebuild event-processor
+make rebuild SERVICE=event-processor
+
+# Rebuild reward-processor
+make rebuild SERVICE=reward-processor
+```
+
+### Viewing Logs
+
+To view logs for a specific service:
+```bash
+docker-compose logs -f <service-name>
+```
+
+For example:
+```bash
+# View catalog-api logs
+docker-compose logs -f catalog-api
+
+# View event-processor logs
+docker-compose logs -f event-processor
+
+# View reward-processor logs
+docker-compose logs -f reward-processor
+```
+
+### Clean Development Environment
+
+To start with a clean environment:
+```bash
+make clean  # Stops all services and removes volumes
+make dev    # Rebuilds and starts all services
+```
 
 ## Services
 
@@ -141,16 +196,6 @@ All environment variables are configured in the `docker-compose.yml` file. The s
 - `KAFKA_CONSUMER_TOPICS`: Kafka topic to consume from (default: learning-events)
 - `KAFKA_CONSUMER_GROUP`: Kafka consumer group name (default: reward-processor)
 
-To stop all services:
-```bash
-make stop
-```
-
-To clean up all Docker resources:
-```bash
-make clean
-```
-
 ## Testing the Event System
 
 You can test the event system by sending a POST request to the Event Processor:
@@ -177,14 +222,35 @@ Here are some useful Docker commands for development:
 docker-compose logs -f
 
 # View logs for a specific service
-docker-compose logs -f catalog-api
+docker-compose logs -f <service-name>
 
 # Rebuild and restart a specific service
-docker-compose up -d --build catalog-api
+docker-compose up -d --build --force-recreate <service-name>
 
 # Access a service's shell
-docker-compose exec catalog-api sh
+docker-compose exec <service-name> sh
 
 # View running containers
 docker-compose ps
 ```
+
+## Troubleshooting
+
+### Service Not Starting
+If a service fails to start:
+1. Check the logs: `docker-compose logs -f <service-name>`
+2. Ensure all dependencies are running: `docker-compose ps`
+3. Try rebuilding the service: `make rebuild SERVICE=<service-name>`
+
+### Database Issues
+If you encounter database issues:
+1. Check if PostgreSQL is running: `docker-compose ps postgres`
+2. View PostgreSQL logs: `docker-compose logs -f postgres`
+3. Try cleaning and restarting: `make clean && make dev`
+
+### Kafka Issues
+If you encounter Kafka issues:
+1. Check if Kafka is running: `docker-compose ps kafka`
+2. View Kafka logs: `docker-compose logs -f kafka`
+3. Check Kafka UI at http://localhost:9094
+4. Try cleaning and restarting: `make clean && make dev`
