@@ -1,0 +1,8 @@
+{
+    "user_id": "abc-232",
+    "event_type": "COURSE_COMPLETED",
+    "course_id": "course-xyz",
+    "category": "MATH",
+    "timestamp": "2025-06-10T14:00:00Z"
+  }
+  

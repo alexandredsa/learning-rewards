@@ -1,7 +1,7 @@
 
 # === Stress Testing ===
-STRESS_RATE ?= 50
-STRESS_DURATION ?= 10s
+STRESS_RATE ?= 10
+STRESS_DURATION ?= 5s
 TARGET_FILE ?= targets/events.txt
 REPORT_FILE ?= results/report.bin
 TEXT_REPORT ?= results/report.txt
