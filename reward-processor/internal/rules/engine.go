@@ -34,19 +34,42 @@ func (e *Engine) SetRules(rules []models.Rule) {
 func (e *Engine) EvaluateEvent(ctx context.Context, event models.UserEvent) ([]models.RewardTriggered, error) {
 	var triggered []models.RewardTriggered
 
+	e.logger.Info("Starting event evaluation",
+		zap.String("user_id", event.UserID),
+		zap.String("event_type", event.EventType),
+		zap.Int("total_rules", len(e.rules)))
+
 	for _, rule := range e.rules {
 		if !rule.Enabled {
+			e.logger.Debug("Skipping disabled rule",
+				zap.String("rule_id", rule.ID),
+				zap.String("user_id", event.UserID))
 			continue
 		}
 
 		if rule.EventType != event.EventType {
+			e.logger.Debug("Skipping rule due to event type mismatch",
+				zap.String("rule_id", rule.ID),
+				zap.String("rule_event_type", rule.EventType),
+				zap.String("event_type", event.EventType),
+				zap.String("user_id", event.UserID))
 			continue
 		}
 
 		// Check conditions
 		if !e.matchesConditions(event, rule.Conditions) {
+			e.logger.Debug("Rule conditions not met",
+				zap.String("rule_id", rule.ID),
+				zap.String("user_id", event.UserID),
+				zap.Any("conditions", rule.Conditions),
+				zap.Any("event_data", event))
 			continue
 		}
+
+		e.logger.Debug("Rule conditions met, evaluating rule type",
+			zap.String("rule_id", rule.ID),
+			zap.String("rule_type", string(rule.Type)),
+			zap.String("user_id", event.UserID))
 
 		switch rule.Type {
 		case models.SingleEventRule:
@@ -59,13 +82,25 @@ func (e *Engine) EvaluateEvent(ctx context.Context, event models.UserEvent) ([]m
 			e.logger.Info("Single event rule triggered",
 				zap.String("user_id", event.UserID),
 				zap.String("rule_id", rule.ID),
-				zap.String("event", event.EventType))
+				zap.String("event", event.EventType),
+				zap.Any("reward", rule.Reward))
 
 		case models.MilestoneRule:
 			count, err := e.eventRepo.IncrementAndGetCount(ctx, event.UserID, event.EventType)
 			if err != nil {
+				e.logger.Error("Failed to increment milestone count",
+					zap.String("user_id", event.UserID),
+					zap.String("rule_id", rule.ID),
+					zap.String("event_type", event.EventType),
+					zap.Error(err))
 				return nil, err
 			}
+
+			e.logger.Debug("Current milestone count",
+				zap.String("user_id", event.UserID),
+				zap.String("rule_id", rule.ID),
+				zap.Int("current_count", count),
+				zap.Int("required_count", rule.Count))
 
 			if count == rule.Count {
 				triggered = append(triggered, models.RewardTriggered{
@@ -78,10 +113,16 @@ func (e *Engine) EvaluateEvent(ctx context.Context, event models.UserEvent) ([]m
 					zap.String("user_id", event.UserID),
 					zap.String("rule_id", rule.ID),
 					zap.String("event", event.EventType),
-					zap.Int("count", rule.Count))
+					zap.Int("count", rule.Count),
+					zap.Any("reward", rule.Reward))
 			}
 		}
 	}
+
+	e.logger.Info("Completed event evaluation",
+		zap.String("user_id", event.UserID),
+		zap.String("event_type", event.EventType),
+		zap.Int("rules_triggered", len(triggered)))
 
 	return triggered, nil
 }
