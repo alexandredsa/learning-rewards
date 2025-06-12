@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	"github.com/alexandredsa/learning-rewards/reward-processor/internal/database"
+	"github.com/alexandredsa/learning-rewards/reward-processor/internal/database/seed"
 	"github.com/alexandredsa/learning-rewards/reward-processor/internal/processor"
 	"github.com/alexandredsa/learning-rewards/reward-processor/internal/repository"
 	"github.com/alexandredsa/learning-rewards/reward-processor/pkg/logger"
@@ -43,8 +44,13 @@ func main() {
 	eventRepo := repository.NewGormUserEventRepository(db)
 	ruleRepo := repository.NewGormRuleRepository(db)
 
-	// Initialize rules if none exist
+	// Seed rules if needed
 	ctx := context.Background()
+	if err := seed.SeedRules(ctx, db, log); err != nil {
+		log.Fatal("Failed to seed rules", zap.Error(err))
+	}
+
+	// Get enabled rules
 	rules, err := ruleRepo.GetEnabledRules(ctx)
 	if err != nil {
 		log.Fatal("Failed to get rules", zap.Error(err))
