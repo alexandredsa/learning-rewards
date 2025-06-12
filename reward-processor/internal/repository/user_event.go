@@ -80,14 +80,16 @@ func (r *GormUserEventRepository) GetCount(ctx context.Context, userID, eventTyp
 	if category != "" {
 		// For category-specific rules, get count for that category
 		query = query.Where("category = ?", category)
+		err := query.Select("count").Scan(&count).Error
+		if err != nil {
+			return 0, err
+		}
 	} else {
 		// For generic rules, sum up all counts for this event type
-		query = query.Select("COALESCE(SUM(count), 0)")
-	}
-
-	err := query.Count(&count).Error
-	if err != nil {
-		return 0, err
+		err := query.Select("COALESCE(SUM(count), 0) as count").Scan(&count).Error
+		if err != nil {
+			return 0, err
+		}
 	}
 
 	return int(count), nil
