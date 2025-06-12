@@ -11,64 +11,8 @@ import (
 	"github.com/alexandredsa/learning-rewards/reward-processor/internal/processor"
 	"github.com/alexandredsa/learning-rewards/reward-processor/internal/repository"
 	"github.com/alexandredsa/learning-rewards/reward-processor/pkg/logger"
-	"github.com/alexandredsa/learning-rewards/reward-processor/pkg/models"
 	"go.uber.org/zap"
 )
-
-// TODO: Load rules from a DB instance.
-var mockedRules = []models.Rule{
-	{
-		ID:        "rule-001",
-		EventType: "COURSE_COMPLETED",
-		Conditions: map[string]string{
-			"category": "MATH",
-		},
-		Count: 1,
-		Reward: models.Reward{
-			Type:        models.BadgeReward,
-			Description: "Finished a Math course",
-		},
-		Enabled: true,
-	},
-	{
-		ID:        "rule-002",
-		EventType: "COURSE_COMPLETED",
-		Count:     5,
-		Conditions: map[string]string{
-			"category": "MATH",
-		},
-		Reward: models.Reward{
-			Type:        models.PointsReward,
-			Amount:      100,
-			Description: "Completed 5 math courses",
-		},
-		Enabled: true,
-	},
-	{
-		ID:         "rule-003",
-		EventType:  "COURSE_COMPLETED",
-		Count:      30,
-		Conditions: map[string]string{},
-		Reward: models.Reward{
-			Type:        models.PointsReward,
-			Amount:      30,
-			Description: "Completed 30 courses",
-		},
-		Enabled: true,
-	},
-	{
-		ID:         "rule-004",
-		EventType:  "CHAPTER_COMPLETED",
-		Count:      10,
-		Conditions: map[string]string{},
-		Reward: models.Reward{
-			Type:        models.PointsReward,
-			Amount:      10,
-			Description: "Completed 10 chapters",
-		},
-		Enabled: true,
-	},
-}
 
 func getEnv(key, defaultValue string) string {
 	if value, exists := os.LookupEnv(key); exists {
@@ -95,8 +39,16 @@ func main() {
 		log.Fatal("Failed to initialize database", zap.Error(err))
 	}
 
-	// Create event repository
+	// Create repositories
 	eventRepo := repository.NewGormUserEventRepository(db)
+	ruleRepo := repository.NewGormRuleRepository(db)
+
+	// Initialize rules if none exist
+	ctx := context.Background()
+	rules, err := ruleRepo.GetEnabledRules(ctx)
+	if err != nil {
+		log.Fatal("Failed to get rules", zap.Error(err))
+	}
 
 	// Get configuration from environment
 	cfg := processor.Config{
@@ -104,7 +56,7 @@ func main() {
 		ConsumerGroup:  getEnv("KAFKA_CONSUMER_GROUP", "reward-processor"),
 		ConsumerTopics: strings.Split(getEnv("KAFKA_CONSUMER_TOPICS", "learning-events"), ","),
 		ProducerTopic:  getEnv("KAFKA_PRODUCER_TOPIC", "user-rewards"),
-		Rules:          mockedRules,
+		Rules:          rules,
 	}
 
 	// Create processor

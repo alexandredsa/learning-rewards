@@ -55,7 +55,7 @@ func Connect(dsn string) (*gorm.DB, error) {
 	log.Println("Connected to DB successfully")
 
 	// Auto-migrate the schema
-	if err := db.AutoMigrate(&models.UserEventCount{}); err != nil {
+	if err := db.AutoMigrate(&models.UserEventCount{}, &models.Rule{}); err != nil {
 		return nil, fmt.Errorf("failed to auto-migrate database: %w", err)
 	}
 
