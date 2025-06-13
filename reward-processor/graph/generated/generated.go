@@ -337,7 +337,7 @@ type Rule {
   type: String!
   eventType: String!
   count: Int
-  conditions: JSON!
+  conditions: JSON
   reward: Reward!
   enabled: Boolean!
 }
@@ -352,7 +352,7 @@ input CreateRuleInput {
   type: String!
   eventType: String!
   count: Int
-  conditions: JSON!
+  conditions: JSON
   reward: RewardInput!
   enabled: Boolean!
 }
@@ -1360,14 +1360,11 @@ func (ec *executionContext) _Rule_conditions(ctx context.Context, field graphql.
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNJSON2string(ctx, field.Selections, res)
+	return ec.marshalOJSON2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Rule_conditions(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3467,7 +3464,7 @@ func (ec *executionContext) unmarshalInputCreateRuleInput(ctx context.Context, o
 			it.Count = data
 		case "conditions":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("conditions"))
-			data, err := ec.unmarshalNJSON2string(ctx, v)
+			data, err := ec.unmarshalOJSON2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3826,9 +3823,6 @@ func (ec *executionContext) _Rule(ctx context.Context, sel ast.SelectionSet, obj
 			out.Values[i] = ec._Rule_count(ctx, field, obj)
 		case "conditions":
 			out.Values[i] = ec._Rule_conditions(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		case "reward":
 			out.Values[i] = ec._Rule_reward(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -4226,22 +4220,6 @@ func (ec *executionContext) unmarshalNID2string(ctx context.Context, v any) (str
 func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
 	_ = sel
 	res := graphql.MarshalID(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-	}
-	return res
-}
-
-func (ec *executionContext) unmarshalNJSON2string(ctx context.Context, v any) (string, error) {
-	res, err := graphql.UnmarshalString(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNJSON2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
-	_ = sel
-	res := graphql.MarshalString(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")

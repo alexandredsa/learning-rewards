@@ -18,8 +18,10 @@ import (
 func (r *mutationResolver) CreateRule(ctx context.Context, input model.CreateRuleInput) (*model.Rule, error) {
 	// Convert conditions from JSON string to map
 	var conditions models.RuleConditions
-	if err := json.Unmarshal([]byte(input.Conditions), &conditions); err != nil {
-		return nil, fmt.Errorf("invalid conditions format: %w", err)
+	if input.Conditions != nil && *input.Conditions != "" {
+		if err := json.Unmarshal([]byte(*input.Conditions), &conditions); err != nil {
+			return nil, fmt.Errorf("invalid conditions format: %w", err)
+		}
 	}
 
 	// Convert count from pointer to value
@@ -77,8 +79,10 @@ func (r *mutationResolver) UpdateRule(ctx context.Context, id string, input mode
 	}
 	if input.Conditions != nil {
 		var conditions models.RuleConditions
-		if err := json.Unmarshal([]byte(*input.Conditions), &conditions); err != nil {
-			return nil, fmt.Errorf("invalid conditions format: %w", err)
+		if *input.Conditions != "" {
+			if err := json.Unmarshal([]byte(*input.Conditions), &conditions); err != nil {
+				return nil, fmt.Errorf("invalid conditions format: %w", err)
+			}
 		}
 		existingRule.Conditions = conditions
 	}
@@ -134,40 +138,6 @@ func (r *queryResolver) Rule(ctx context.Context, id string) (*model.Rule, error
 		return nil, nil
 	}
 	return convertToGraphQLRule(rule), nil
-}
-
-// Helper function to convert from domain model to GraphQL model
-func convertToGraphQLRule(rule *models.Rule) *model.Rule {
-	// Convert conditions to JSON string
-	conditionsJSON, _ := json.Marshal(rule.Conditions)
-
-	// Convert count to pointer
-	var countPtr *int
-	if rule.Count > 0 {
-		count := rule.Count
-		countPtr = &count
-	}
-
-	// Convert reward amount to pointer
-	var amountPtr *int
-	if rule.Reward.Amount > 0 {
-		amount := rule.Reward.Amount
-		amountPtr = &amount
-	}
-
-	return &model.Rule{
-		ID:         rule.ID,
-		Type:       string(rule.Type),
-		EventType:  rule.EventType,
-		Count:      countPtr,
-		Conditions: string(conditionsJSON),
-		Reward: &model.Reward{
-			Type:        string(rule.Reward.Type),
-			Amount:      amountPtr,
-			Description: rule.Reward.Description,
-		},
-		Enabled: rule.Enabled,
-	}
 }
 
 // Mutation returns generated.MutationResolver implementation.

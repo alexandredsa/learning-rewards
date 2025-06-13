@@ -6,7 +6,7 @@ type CreateRuleInput struct {
 	Type       string       `json:"type"`
 	EventType  string       `json:"eventType"`
 	Count      *int         `json:"count,omitempty"`
-	Conditions string       `json:"conditions"`
+	Conditions *string      `json:"conditions,omitempty"`
 	Reward     *RewardInput `json:"reward"`
 	Enabled    bool         `json:"enabled"`
 }
@@ -34,7 +34,7 @@ type Rule struct {
 	Type       string  `json:"type"`
 	EventType  string  `json:"eventType"`
 	Count      *int    `json:"count,omitempty"`
-	Conditions string  `json:"conditions"`
+	Conditions *string `json:"conditions,omitempty"`
 	Reward     *Reward `json:"reward"`
 	Enabled    bool    `json:"enabled"`
 }

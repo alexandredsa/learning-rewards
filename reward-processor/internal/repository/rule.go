@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/alexandredsa/learning-rewards/reward-processor/pkg/models"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -56,6 +57,7 @@ func (r *GormRuleRepository) GetRuleByID(ctx context.Context, id string) (*model
 
 // CreateRule implements RuleRepository
 func (r *GormRuleRepository) CreateRule(ctx context.Context, rule *models.Rule) error {
+	rule.ID = uuid.New().String()
 	return r.db.WithContext(ctx).Create(rule).Error
 }
 
