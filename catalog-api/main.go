@@ -20,7 +20,7 @@ func main() {
 		log.Fatalf("failed to open db: %v", err)
 	}
 
-	srv := handler.NewDefaultServer(gql.NewExecutableSchema(gql.Config{Resolvers: &gql.Resolver{DB: db}}))
+	srv := handler.New(gql.NewExecutableSchema(gql.Config{Resolvers: &gql.Resolver{DB: db}}))
 
 	http.Handle("/", playground.Handler("GraphQL", "/query"))
 	http.Handle("/query", srv)
