@@ -1,0 +1,51 @@
+type Query {
+  rules: [Rule!]!
+  rule(id: ID!): Rule
+}
+
+type Mutation {
+  createRule(input: CreateRuleInput!): Rule!
+  updateRule(id: ID!, input: UpdateRuleInput!): Rule!
+}
+
+type Rule {
+  id: ID!
+  type: String!
+  eventType: String!
+  count: Int
+  conditions: JSON!
+  reward: Reward!
+  enabled: Boolean!
+}
+
+type Reward {
+  type: String!
+  amount: Int
+  description: String!
+}
+
+input CreateRuleInput {
+  type: String!
+  eventType: String!
+  count: Int
+  conditions: JSON!
+  reward: RewardInput!
+  enabled: Boolean!
+}
+
+input UpdateRuleInput {
+  type: String
+  eventType: String
+  count: Int
+  conditions: JSON
+  reward: RewardInput
+  enabled: Boolean
+}
+
+input RewardInput {
+  type: String!
+  amount: Int
+  description: String!
+}
+
+scalar JSON
