@@ -13,7 +13,7 @@ type Rule {
   type: String!
   eventType: String!
   count: Int
-  conditions: JSON!
+  conditions: JSON
   reward: Reward!
   enabled: Boolean!
 }
@@ -28,7 +28,7 @@ input CreateRuleInput {
   type: String!
   eventType: String!
   count: Int
-  conditions: JSON!
+  conditions: JSON
   reward: RewardInput!
   enabled: Boolean!
 }
