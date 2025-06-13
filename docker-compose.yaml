@@ -8,6 +8,7 @@ services:
     environment:
       - DATABASE_DSN=postgres://user:pass@postgres:5432/catalog-api?sslmode=disable
       - PORT=8080
+      - ENV=dev
     depends_on:
       postgres:
         condition: service_healthy
