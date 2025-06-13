@@ -7,11 +7,14 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/extension"
+	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/alexandredsa/learning-rewards/reward-processor/graph/generated"
 	"github.com/alexandredsa/learning-rewards/reward-processor/graph/resolver"
 	"github.com/alexandredsa/learning-rewards/reward-processor/internal/repository"
 	"github.com/alexandredsa/learning-rewards/reward-processor/pkg/logger"
+	"github.com/gorilla/mux"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"go.uber.org/zap"
 )
@@ -46,27 +49,67 @@ func (s *Server) Start(db *repository.GormRuleRepository) error {
 		Resolvers: resolver,
 	}))
 
+	// Configure server with HTTP transport
+	srv.AddTransport(transport.Options{})
+	srv.AddTransport(transport.GET{})
+	srv.AddTransport(transport.POST{})
+	srv.AddTransport(transport.MultipartForm{})
+
+	// Enable introspection
+	srv.Use(extension.Introspection{})
+
 	// Set custom error presenter
 	srv.SetErrorPresenter(func(ctx context.Context, err error) *gqlerror.Error {
 		s.log.Error("GraphQL error", zap.Error(err))
 		return gqlerror.Errorf("%s", err.Error())
 	})
 
-	// Set up routes
-	mux := http.NewServeMux()
+	// Create router
+	router := mux.NewRouter()
+
+	// loggingMiddleware logs the HTTP request details
+	loggingMiddleware := func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			start := time.Now()
+			next.ServeHTTP(w, r)
+			s.log.Info("HTTP request",
+				zap.String("method", r.Method),
+				zap.String("path", r.RequestURI),
+				zap.Duration("duration", time.Since(start)))
+		})
+	}
+
+	// recoveryMiddleware recovers from panics and logs the error
+	recoveryMiddleware := func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			defer func() {
+				if err := recover(); err != nil {
+					s.log.Error("panic recovered",
+						zap.Any("error", err),
+						zap.String("path", r.RequestURI))
+					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				}
+			}()
+			next.ServeHTTP(w, r)
+		})
+	}
+
+	// Apply middleware
+	router.Use(loggingMiddleware)
+	router.Use(recoveryMiddleware)
 
 	// GraphQL playground for development
 	if os.Getenv("ENV") != "production" {
-		mux.Handle("/", playground.Handler("GraphQL playground", "/query"))
+		router.Handle("/", playground.Handler("GraphQL", "/query"))
 	}
 
 	// GraphQL endpoint
-	mux.Handle("/query", srv)
+	router.Handle("/query", srv)
 
 	// Create HTTP server
 	s.server = &http.Server{
 		Addr:         ":" + s.config.Port,
-		Handler:      mux,
+		Handler:      router,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
