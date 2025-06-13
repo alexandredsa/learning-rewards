@@ -19,7 +19,7 @@ rebuild:
 	@if [ -z "$(SERVICE)" ]; then \
 		echo "Error: SERVICE argument is required"; \
 		echo "Usage: make rebuild SERVICE=<service-name>"; \
-		echo "Available services: catalog-api, event-processor, reward-processor"; \
+		echo "Available services: catalog-api, event-processor, reward-processor-api, reward-processor-worker"; \
 		exit 1; \
 	fi
 	@echo "Rebuilding $(SERVICE)..."
@@ -32,7 +32,8 @@ run:
 	@echo "Services are running!"
 	@echo "Catalog API: http://localhost:8080"
 	@echo "Event Processor: http://localhost:8081/health"
-	@echo "Reward Processor: http://localhost:8082/health"
+	@echo "Reward Processor API: http://localhost:8082/health"
+	@echo "Reward Processor Worker: http://localhost:8083/health"
 	@echo "Kafka UI: http://localhost:9094"
 
 # Stop all services
@@ -57,7 +58,7 @@ help:
 	@echo "  make stop         - Stop all services"
 	@echo "  make clean        - Clean up Docker resources and remove unused images"
 	@echo "  make rebuild SERVICE=<name> - Rebuild and restart a specific service"
-	@echo "                              Available services: catalog-api, event-processor, reward-processor"
+	@echo "                              Available services: catalog-api, event-processor, reward-processor-api, reward-processor-worker"
 	@echo "  make help         - Show this help message"
 
 .PHONY: stress-test install-vegeta clean-stress-test

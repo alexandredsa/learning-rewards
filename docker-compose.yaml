@@ -26,15 +26,33 @@ services:
       kafka:
         condition: service_healthy
 
-  reward-processor:
+  reward-processor-api:
     build:
       context: ./reward-processor
       dockerfile: Dockerfile
+      args:
+        SERVICE: api
     ports:
       - "8082:8082"
     environment:
       - DATABASE_DSN=postgres://user:pass@postgres:5432/rewards?sslmode=disable
       - PORT=8082
+      - LOG_LEVEL=debug
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  reward-processor-worker:
+    build:
+      context: ./reward-processor
+      dockerfile: Dockerfile
+      args:
+        SERVICE: worker
+    ports:
+      - "8083:8083"
+    environment:
+      - DATABASE_DSN=postgres://user:pass@postgres:5432/rewards?sslmode=disable
+      - PORT=8083
       - KAFKA_BROKERS=kafka:9092
       - KAFKA_CONSUMER_TOPICS=learning-events
       - KAFKA_CONSUMER_GROUP=reward-processor
