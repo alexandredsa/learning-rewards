@@ -1,19 +1,20 @@
 # Learning-Rewards
 
-A microservices-based project that implements a catalog system with event processing and reward management capabilities. The project consists of three main services:
+A microservices-based project that implements a catalog system with event processing and reward management capabilities. The project consists of four main services:
 
 - **Catalog API**: A GraphQL API service that manages the catalog data
 - **Event Processor**: A service that handles event processing and publishes events to Kafka
-- **Reward Processor**: A service that processes events to manage and distribute rewards to users
+- **Reward Processor API**: A GraphQL API service for managing reward rules
+- **Reward Processor Worker**: A service that processes events to manage and distribute rewards to users
 
 ## Architecture
 
 The project uses a microservices architecture with the following components:
 
 - PostgreSQL databases (one for each service)
-- GraphQL API (using gqlgen)
+- GraphQL APIs (using gqlgen)
 - Event processing service with Kafka integration
-- Reward processing service for managing user rewards
+- Reward processing service split into API and worker components
 - Docker for containerization
 
 ### Event Processing Flow
@@ -21,8 +22,9 @@ The project uses a microservices architecture with the following components:
 1. Events are received via HTTP POST requests to the Event Processor
 2. Events are validated and transformed into a standardized format
 3. Events are published to Kafka topics for further processing
-4. The Reward Processor consumes these events to manage user rewards
-5. Other services can consume these events for their specific needs
+4. The Reward Processor Worker consumes these events to manage user rewards
+5. The Reward Processor API provides a GraphQL interface for managing reward rules
+6. Other services can consume these events for their specific needs
 
 ## Prerequisites
 
@@ -62,7 +64,7 @@ This will:
 - `make stop` - Stop all services
 - `make clean` - Clean up Docker resources and remove unused images
 - `make rebuild SERVICE=<name>` - Rebuild and restart a specific service
-  - Available services: catalog-api, event-processor, reward-processor
+  - Available services: catalog-api, event-processor, reward-processor-api, reward-processor-worker
 - `make help` - Show all available commands
 - `make stress-test` – Run Vegeta load test
 - `make install-vegeta` – Install Vegeta CLI
@@ -89,8 +91,11 @@ make rebuild SERVICE=catalog-api
 # Rebuild event-processor
 make rebuild SERVICE=event-processor
 
-# Rebuild reward-processor
-make rebuild SERVICE=reward-processor
+# Rebuild reward-processor-api
+make rebuild SERVICE=reward-processor-api
+
+# Rebuild reward-processor-worker
+make rebuild SERVICE=reward-processor-worker
 ```
 
 ### Viewing Logs
@@ -108,8 +113,11 @@ docker-compose logs -f catalog-api
 # View event-processor logs
 docker-compose logs -f event-processor
 
-# View reward-processor logs
-docker-compose logs -f reward-processor
+# View reward-processor-api logs
+docker-compose logs -f reward-processor-api
+
+# View reward-processor-worker logs
+docker-compose logs -f reward-processor-worker
 ```
 
 ### Clean Development Environment
@@ -135,11 +143,20 @@ make dev    # Rebuilds and starts all services
 - Uses PostgreSQL database 'rewards'
 - Publishes events to Kafka topic `learning-events`
 
-### Reward Processor
+### Reward Processor API
 - Runs on port 8082
 - Health check endpoint at http://localhost:8082/health
+- GraphQL playground available at http://localhost:8082/graphql
+- GraphQL endpoint at http://localhost:8082/graphql
+- Uses PostgreSQL database 'rewards'
+- Provides rule management interface
+
+### Reward Processor Worker
+- Runs on port 8083
+- Health check endpoint at http://localhost:8083/health
 - Consumes events from Kafka topic `learning-events`
 - Uses PostgreSQL database 'rewards'
+- Processes events and manages user rewards
 
 ### PostgreSQL
 - Single instance running on port 5432
@@ -189,12 +206,18 @@ All environment variables are configured in the `docker-compose.yml` file. The s
 - `PORT`: Service port (default: 8081)
 - `KAFKA_BROKERS`: Kafka broker address (default: kafka:9092)
 
-#### Reward Processor
+#### Reward Processor API
 - `DATABASE_DSN`: Database connection string (format: postgres://user:pass@postgres:5432/rewards?sslmode=disable)
 - `PORT`: Service port (default: 8082)
+- `LOG_LEVEL`: Logging level (default: debug)
+
+#### Reward Processor Worker
+- `DATABASE_DSN`: Database connection string (format: postgres://user:pass@postgres:5432/rewards?sslmode=disable)
+- `PORT`: Service port (default: 8083)
 - `KAFKA_BROKERS`: Kafka broker address (default: kafka:9092)
 - `KAFKA_CONSUMER_TOPICS`: Kafka topic to consume from (default: learning-events)
 - `KAFKA_CONSUMER_GROUP`: Kafka consumer group name (default: reward-processor)
+- `LOG_LEVEL`: Logging level (default: debug)
 
 ## Testing the Event System
 

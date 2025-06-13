@@ -11,12 +11,16 @@ A microservice that processes user learning events and triggers rewards based on
   - `MILESTONE`: Tracks event counts and triggers when a target is reached
 - Publishes reward events to Kafka topic `user-rewards`
 - Persistent milestone tracking using PostgreSQL
+- GraphQL API for rule management
 - Graceful shutdown handling
 - Structured logging
 
 ## Configuration
 
 The service can be configured using environment variables:
+
+### API Configuration
+- `PORT`: Port for the GraphQL API server (default: "8082")
 
 ### Kafka Configuration
 - `KAFKA_BROKERS`: Comma-separated list of Kafka broker addresses (default: "localhost:29092")
@@ -35,6 +39,129 @@ The service can be configured using environment variables:
 ### Other Configuration
 - `LOG_LEVEL`: Logging level (default: "info")
 - `ENV`: Environment name, affects logging format (default: "development")
+
+## GraphQL API
+
+The service exposes a GraphQL API for managing reward rules. The API is available at `/graphql` endpoint.
+
+### Queries
+
+#### List All Rules
+```graphql
+query {
+  rules {
+    id
+    type
+    eventType
+    count
+    conditions
+    reward {
+      type
+      amount
+      description
+    }
+    enabled
+  }
+}
+```
+
+#### Get Rule by ID
+```graphql
+query {
+  rule(id: "rule-001") {
+    id
+    type
+    eventType
+    count
+    conditions
+    reward {
+      type
+      amount
+      description
+    }
+    enabled
+  }
+}
+```
+
+### Mutations
+
+#### Create Rule
+```graphql
+mutation {
+  createRule(input: {
+    type: "MILESTONE"
+    eventType: "COURSE_COMPLETED"
+    count: 5
+    conditions: {
+      "category": "MATH"
+    }
+    reward: {
+      type: "POINTS"
+      amount: 100
+      description: "Completed 5 math courses"
+    }
+    enabled: true
+  }) {
+    id
+    type
+    eventType
+    count
+    conditions
+    reward {
+      type
+      amount
+      description
+    }
+    enabled
+  }
+}
+```
+
+#### Update Rule
+```graphql
+mutation {
+  updateRule(
+    id: "rule-001"
+    input: {
+      enabled: false
+      reward: {
+        type: "POINTS"
+        amount: 200
+        description: "Updated reward description"
+      }
+    }
+  ) {
+    id
+    type
+    eventType
+    count
+    conditions
+    reward {
+      type
+      amount
+      description
+    }
+    enabled
+  }
+}
+```
+
+### Types
+
+#### Rule
+- `id`: Unique identifier
+- `type`: Rule type (`SINGLE_EVENT` or `MILESTONE`)
+- `eventType`: Type of event to match
+- `count`: Required count for milestone rules
+- `conditions`: JSON object with matching conditions
+- `reward`: Reward configuration
+- `enabled`: Whether the rule is active
+
+#### Reward
+- `type`: Reward type (e.g., `POINTS`, `BADGE`)
+- `amount`: Reward amount (for point-based rewards)
+- `description`: Human-readable description
 
 ## Rule Types
 
@@ -121,10 +248,16 @@ Tracks event counts in the database and triggers when the target is reached:
    ```bash
    go mod download
    ```
-5. Run the service:
+5. Run the API server:
    ```bash
-   go run cmd/reward-processor/main.go
+   go run cmd/api/main.go
    ```
+6. Run the worker:
+   ```bash
+   go run cmd/worker/main.go
+   ```
+
+You can also use the GraphQL playground at `http://localhost:8082/graphql` to interact with the API.
 
 ## Testing
 

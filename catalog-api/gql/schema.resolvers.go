@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// TODO: Refactor to move DB logic to a repository layer.
 func (r *queryResolver) Courses(ctx context.Context, ids []string) ([]*Course, error) {
 	var courses []models.Course
 
