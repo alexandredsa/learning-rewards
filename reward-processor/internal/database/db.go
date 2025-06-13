@@ -1,6 +1,7 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -15,6 +16,9 @@ const (
 	maxRetries = 5
 	baseDelay  = time.Second
 )
+
+// ErrMissingDSN is returned when no database connection string is provided
+var ErrMissingDSN = errors.New("database connection string (DSN) is required")
 
 func connectWithRetry(dsn string) (*gorm.DB, error) {
 	var db *gorm.DB
@@ -44,7 +48,7 @@ func connectWithRetry(dsn string) (*gorm.DB, error) {
 // Connect creates a new database connection and runs auto-migrations
 func Connect(dsn string) (*gorm.DB, error) {
 	if dsn == "" {
-		dsn = "postgres://user:pass@localhost:5433/reward_processor?sslmode=disable"
+		return nil, ErrMissingDSN
 	}
 
 	db, err := connectWithRetry(dsn)

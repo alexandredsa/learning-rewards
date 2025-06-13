@@ -37,7 +37,7 @@ func main() {
 	defer stop()
 
 	// Connect to database using DSN from environment variable (or default from database package)
-	db, err := database.Connect(os.Getenv("DATABASE_URL"))
+	db, err := database.Connect(os.Getenv("DATABASE_DSN"))
 	if err != nil {
 		log.Fatal("Failed to connect to database", zap.Error(err))
 	}
