@@ -10,42 +10,52 @@ type Mutation {
 
 type Rule {
   id: ID!
-  type: String!
   eventType: String!
   count: Int
-  conditions: JSON
+  conditions: RuleConditions
   reward: Reward!
   enabled: Boolean!
 }
 
+type RuleConditions {
+  category: String
+}
+
+enum RewardType {
+  BADGE
+  POINTS
+}
+
 type Reward {
-  type: String!
+  type: RewardType!
   amount: Int
   description: String!
 }
 
 input CreateRuleInput {
-  type: String!
   eventType: String!
   count: Int
-  conditions: JSON
+  conditions: RuleConditionsInput
   reward: RewardInput!
   enabled: Boolean!
 }
 
 input UpdateRuleInput {
-  type: String
   eventType: String
   count: Int
-  conditions: JSON
+  conditions: RuleConditionsInput
   reward: RewardInput
   enabled: Boolean
 }
 
 input RewardInput {
-  type: String!
+  type: RewardType!
   amount: Int
   description: String!
+}
+
+input RuleConditionsInput {
+  category: String!
 }
 
 scalar JSON

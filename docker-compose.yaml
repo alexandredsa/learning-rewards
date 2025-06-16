@@ -39,6 +39,7 @@ services:
       - DATABASE_DSN=postgres://user:pass@postgres:5432/rewards?sslmode=disable
       - PORT=8082
       - LOG_LEVEL=debug
+      - ENV=dev
     depends_on:
       postgres:
         condition: service_healthy
@@ -58,6 +59,7 @@ services:
       - KAFKA_CONSUMER_TOPICS=learning-events
       - KAFKA_CONSUMER_GROUP=reward-processor
       - LOG_LEVEL=debug
+      - ENV=dev
     depends_on:
       kafka:
         condition: service_healthy

@@ -34,11 +34,10 @@ func TestEvaluateEvent_SingleEventRule(t *testing.T) {
 
 	// Define a single event rule
 	rule := models.Rule{
-		ID:        "rule-001",
-		EventType: "COURSE_COMPLETED",
-		Conditions: map[string]string{
-			"category": "MATH",
-		},
+		ID:                 "rule-001",
+		EventType:          "COURSE_COMPLETED",
+		Count:              1,
+		ConditionsCategory: ptrString("MATH"),
 		Reward: models.Reward{
 			Type:        models.BadgeReward,
 			Description: "Math Course Completed",
@@ -63,6 +62,7 @@ func TestEvaluateEvent_SingleEventRule(t *testing.T) {
 				Timestamp: time.Now(),
 			},
 			expectedCount: 1,
+			stubCount:     1,
 		},
 		{
 			name: "matching event but exceeds counts doesn't trigger",
@@ -120,12 +120,10 @@ func TestEvaluateEvent_MilestoneRule(t *testing.T) {
 
 	// Define a milestone rule
 	rule := models.Rule{
-		ID:        "rule-002",
-		EventType: "COURSE_COMPLETED",
-		Count:     3,
-		Conditions: map[string]string{
-			"category": "MATH",
-		},
+		ID:                 "rule-002",
+		EventType:          "COURSE_COMPLETED",
+		Count:              3,
+		ConditionsCategory: ptrString("MATH"),
 		Reward: models.Reward{
 			Type:        models.PointsReward,
 			Amount:      100,
@@ -212,11 +210,9 @@ func TestEvaluateEvent_DisabledRule(t *testing.T) {
 
 	// Define a disabled rule
 	rule := models.Rule{
-		ID:        "rule-003",
-		EventType: "COURSE_COMPLETED",
-		Conditions: map[string]string{
-			"category": "MATH",
-		},
+		ID:                 "rule-003",
+		EventType:          "COURSE_COMPLETED",
+		ConditionsCategory: ptrString("MATH"),
 		Reward: models.Reward{
 			Type:        models.BadgeReward,
 			Description: "Disabled Rule",
@@ -244,12 +240,10 @@ func TestEvaluateEvent_RepositoryError(t *testing.T) {
 
 	// Define a milestone rule
 	rule := models.Rule{
-		ID:        "rule-004",
-		EventType: "COURSE_COMPLETED",
-		Count:     3,
-		Conditions: map[string]string{
-			"category": "MATH",
-		},
+		ID:                 "rule-004",
+		EventType:          "COURSE_COMPLETED",
+		Count:              3,
+		ConditionsCategory: ptrString("MATH"),
 		Reward: models.Reward{
 			Type:        models.PointsReward,
 			Amount:      100,
@@ -289,4 +283,9 @@ func TestGetMilestoneCount(t *testing.T) {
 	count, err := engine.GetMilestoneCount(context.Background(), userID, eventType, category)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedCount, count)
+}
+
+// Helper function to create a pointer to a string
+func ptrString(s string) *string {
+	return &s
 }

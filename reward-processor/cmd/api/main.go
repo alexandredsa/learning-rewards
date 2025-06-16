@@ -27,10 +27,25 @@ func getPort() string {
 	return defaultPort
 }
 
+func getEnv(key, defaultValue string) string {
+	if value, exists := os.LookupEnv(key); exists {
+		return value
+	}
+	return defaultValue
+}
+
 func main() {
 	// Initialize logger
+	if err := logger.Initialize(logger.Config{
+		Level:      getEnv("LOG_LEVEL", "info"),
+		Production: getEnv("ENV", "development") == "production",
+	}); err != nil {
+		panic("failed to initialize logger: " + err.Error())
+	}
+
+	defer logger.Sync()
+
 	log := logger.Get()
-	defer log.Sync()
 
 	// Create context that listens for the interrupt signal from the OS
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)

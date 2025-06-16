@@ -2,13 +2,19 @@
 
 package model
 
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"strconv"
+)
+
 type CreateRuleInput struct {
-	Type       string       `json:"type"`
-	EventType  string       `json:"eventType"`
-	Count      *int         `json:"count,omitempty"`
-	Conditions *string      `json:"conditions,omitempty"`
-	Reward     *RewardInput `json:"reward"`
-	Enabled    bool         `json:"enabled"`
+	EventType  string               `json:"eventType"`
+	Count      *int                 `json:"count,omitempty"`
+	Conditions *RuleConditionsInput `json:"conditions,omitempty"`
+	Reward     *RewardInput         `json:"reward"`
+	Enabled    bool                 `json:"enabled"`
 }
 
 type Mutation struct {
@@ -18,32 +24,93 @@ type Query struct {
 }
 
 type Reward struct {
-	Type        string `json:"type"`
-	Amount      *int   `json:"amount,omitempty"`
-	Description string `json:"description"`
+	Type        RewardType `json:"type"`
+	Amount      *int       `json:"amount,omitempty"`
+	Description string     `json:"description"`
 }
 
 type RewardInput struct {
-	Type        string `json:"type"`
-	Amount      *int   `json:"amount,omitempty"`
-	Description string `json:"description"`
+	Type        RewardType `json:"type"`
+	Amount      *int       `json:"amount,omitempty"`
+	Description string     `json:"description"`
 }
 
 type Rule struct {
-	ID         string  `json:"id"`
-	Type       string  `json:"type"`
-	EventType  string  `json:"eventType"`
-	Count      *int    `json:"count,omitempty"`
-	Conditions *string `json:"conditions,omitempty"`
-	Reward     *Reward `json:"reward"`
-	Enabled    bool    `json:"enabled"`
+	ID         string          `json:"id"`
+	EventType  string          `json:"eventType"`
+	Count      *int            `json:"count,omitempty"`
+	Conditions *RuleConditions `json:"conditions,omitempty"`
+	Reward     *Reward         `json:"reward"`
+	Enabled    bool            `json:"enabled"`
+}
+
+type RuleConditions struct {
+	Category *string `json:"category,omitempty"`
+}
+
+type RuleConditionsInput struct {
+	Category *string `json:"category,omitempty"`
 }
 
 type UpdateRuleInput struct {
-	Type       *string      `json:"type,omitempty"`
-	EventType  *string      `json:"eventType,omitempty"`
-	Count      *int         `json:"count,omitempty"`
-	Conditions *string      `json:"conditions,omitempty"`
-	Reward     *RewardInput `json:"reward,omitempty"`
-	Enabled    *bool        `json:"enabled,omitempty"`
+	EventType  *string              `json:"eventType,omitempty"`
+	Count      *int                 `json:"count,omitempty"`
+	Conditions *RuleConditionsInput `json:"conditions,omitempty"`
+	Reward     *RewardInput         `json:"reward,omitempty"`
+	Enabled    *bool                `json:"enabled,omitempty"`
+}
+
+type RewardType string
+
+const (
+	RewardTypeBadge  RewardType = "BADGE"
+	RewardTypePoints RewardType = "POINTS"
+)
+
+var AllRewardType = []RewardType{
+	RewardTypeBadge,
+	RewardTypePoints,
+}
+
+func (e RewardType) IsValid() bool {
+	switch e {
+	case RewardTypeBadge, RewardTypePoints:
+		return true
+	}
+	return false
+}
+
+func (e RewardType) String() string {
+	return string(e)
+}
+
+func (e *RewardType) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = RewardType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid RewardType", str)
+	}
+	return nil
+}
+
+func (e RewardType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *RewardType) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e RewardType) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }

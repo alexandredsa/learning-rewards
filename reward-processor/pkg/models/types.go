@@ -1,14 +1,8 @@
 package models
 
 import (
-	"database/sql/driver"
-	"encoding/json"
-	"errors"
 	"time"
 )
-
-// RuleType represents the type of rule
-type RuleType string
 
 // RewardType represents the type of reward
 type RewardType string
@@ -20,44 +14,12 @@ const (
 
 // Rule represents a reward rule
 type Rule struct {
-	ID         string         `json:"id" gorm:"primaryKey"`
-	Type       RuleType       `json:"type"`
-	EventType  string         `json:"event_type"`
-	Count      int            `json:"count,omitempty"`
-	Conditions RuleConditions `json:"conditions" gorm:"type:jsonb"`
-	Reward     Reward         `json:"reward" gorm:"embedded"`
-	Enabled    bool           `json:"enabled"`
-}
-
-// RuleConditions is a custom type to handle map[string]string in GORM
-type RuleConditions map[string]string
-
-// Value implements the driver.Valuer interface for RuleConditions
-func (rc RuleConditions) Value() (driver.Value, error) {
-	if rc == nil {
-		return nil, nil
-	}
-	return json.Marshal(rc)
-}
-
-// Scan implements the sql.Scanner interface for RuleConditions
-func (rc *RuleConditions) Scan(value interface{}) error {
-	if value == nil {
-		*rc = make(RuleConditions)
-		return nil
-	}
-
-	var bytes []byte
-	switch v := value.(type) {
-	case []byte:
-		bytes = v
-	case string:
-		bytes = []byte(v)
-	default:
-		return errors.New("type assertion to []byte failed")
-	}
-
-	return json.Unmarshal(bytes, rc)
+	ID                 string  `json:"id" gorm:"primaryKey"`
+	EventType          string  `json:"event_type"`
+	Count              int     `json:"count,omitempty"`
+	ConditionsCategory *string `json:"conditions_category" gorm:"column:conditions_category"`
+	Reward             Reward  `json:"reward" gorm:"embedded"`
+	Enabled            bool    `json:"enabled"`
 }
 
 // Reward represents a reward definition

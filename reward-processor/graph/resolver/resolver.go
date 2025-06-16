@@ -2,6 +2,7 @@ package resolver
 
 import (
 	"github.com/alexandredsa/learning-rewards/reward-processor/internal/repository"
+	"go.uber.org/zap"
 )
 
 // This file will not be regenerated automatically.
@@ -10,11 +11,13 @@ import (
 
 type Resolver struct {
 	RuleRepository repository.RuleRepository
+	Logger         *zap.Logger
 }
 
 // NewResolver creates a new resolver with the required dependencies
-func NewResolver(ruleRepo repository.RuleRepository) *Resolver {
+func NewResolver(ruleRepo repository.RuleRepository, logger *zap.Logger) *Resolver {
 	return &Resolver{
 		RuleRepository: ruleRepo,
+		Logger:         logger,
 	}
 }

@@ -42,7 +42,7 @@ func New(cfg Config) *Server {
 // Start starts the HTTP server
 func (s *Server) Start(db *repository.GormRuleRepository) error {
 	// Create resolver
-	resolver := resolver.NewResolver(db)
+	resolver := resolver.NewResolver(db, s.log)
 
 	// Create GraphQL server
 	srv := handler.New(generated.NewExecutableSchema(generated.Config{
