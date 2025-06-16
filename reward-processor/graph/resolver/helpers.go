@@ -32,7 +32,7 @@ func convertToGraphQLRule(rule *models.Rule) *model.Rule {
 		Count:      countPtr,
 		Conditions: &condStr,
 		Reward: &model.Reward{
-			Type:        string(rule.Reward.Type),
+			Type:        model.RewardType(rule.Reward.Type),
 			Amount:      amountPtr,
 			Description: rule.Reward.Description,
 		},

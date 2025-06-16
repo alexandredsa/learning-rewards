@@ -2,6 +2,13 @@
 
 package model
 
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"strconv"
+)
+
 type CreateRuleInput struct {
 	EventType  string       `json:"eventType"`
 	Count      *int         `json:"count,omitempty"`
@@ -17,15 +24,15 @@ type Query struct {
 }
 
 type Reward struct {
-	Type        string `json:"type"`
-	Amount      *int   `json:"amount,omitempty"`
-	Description string `json:"description"`
+	Type        RewardType `json:"type"`
+	Amount      *int       `json:"amount,omitempty"`
+	Description string     `json:"description"`
 }
 
 type RewardInput struct {
-	Type        string `json:"type"`
-	Amount      *int   `json:"amount,omitempty"`
-	Description string `json:"description"`
+	Type        RewardType `json:"type"`
+	Amount      *int       `json:"amount,omitempty"`
+	Description string     `json:"description"`
 }
 
 type Rule struct {
@@ -43,4 +50,59 @@ type UpdateRuleInput struct {
 	Conditions *string      `json:"conditions,omitempty"`
 	Reward     *RewardInput `json:"reward,omitempty"`
 	Enabled    *bool        `json:"enabled,omitempty"`
+}
+
+type RewardType string
+
+const (
+	RewardTypeBadge  RewardType = "BADGE"
+	RewardTypePoints RewardType = "POINTS"
+)
+
+var AllRewardType = []RewardType{
+	RewardTypeBadge,
+	RewardTypePoints,
+}
+
+func (e RewardType) IsValid() bool {
+	switch e {
+	case RewardTypeBadge, RewardTypePoints:
+		return true
+	}
+	return false
+}
+
+func (e RewardType) String() string {
+	return string(e)
+}
+
+func (e *RewardType) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = RewardType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid RewardType", str)
+	}
+	return nil
+}
+
+func (e RewardType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *RewardType) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e RewardType) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }

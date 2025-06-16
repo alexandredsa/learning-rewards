@@ -333,8 +333,13 @@ type Rule {
   enabled: Boolean!
 }
 
+enum RewardType {
+  BADGE
+  POINTS
+}
+
 type Reward {
-  type: String!
+  type: RewardType!
   amount: Int
   description: String!
 }
@@ -356,7 +361,7 @@ input UpdateRuleInput {
 }
 
 input RewardInput {
-  type: String!
+  type: RewardType!
   amount: Int
   description: String!
 }
@@ -1044,9 +1049,9 @@ func (ec *executionContext) _Reward_type(ctx context.Context, field graphql.Coll
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(model.RewardType)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNRewardType2githubᚗcomᚋalexandredsaᚋlearningᚑrewardsᚋrewardᚑprocessorᚋgraphᚋmodelᚐRewardType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Reward_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1056,7 +1061,7 @@ func (ec *executionContext) fieldContext_Reward_type(_ context.Context, field gr
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type RewardType does not have child fields")
 		},
 	}
 	return fc, nil
@@ -3435,7 +3440,7 @@ func (ec *executionContext) unmarshalInputRewardInput(ctx context.Context, obj a
 		switch k {
 		case "type":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNRewardType2githubᚗcomᚋalexandredsaᚋlearningᚑrewardsᚋrewardᚑprocessorᚋgraphᚋmodelᚐRewardType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4159,6 +4164,16 @@ func (ec *executionContext) marshalNReward2ᚖgithubᚗcomᚋalexandredsaᚋlear
 func (ec *executionContext) unmarshalNRewardInput2ᚖgithubᚗcomᚋalexandredsaᚋlearningᚑrewardsᚋrewardᚑprocessorᚋgraphᚋmodelᚐRewardInput(ctx context.Context, v any) (*model.RewardInput, error) {
 	res, err := ec.unmarshalInputRewardInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNRewardType2githubᚗcomᚋalexandredsaᚋlearningᚑrewardsᚋrewardᚑprocessorᚋgraphᚋmodelᚐRewardType(ctx context.Context, v any) (model.RewardType, error) {
+	var res model.RewardType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNRewardType2githubᚗcomᚋalexandredsaᚋlearningᚑrewardsᚋrewardᚑprocessorᚋgraphᚋmodelᚐRewardType(ctx context.Context, sel ast.SelectionSet, v model.RewardType) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNRule2githubᚗcomᚋalexandredsaᚋlearningᚑrewardsᚋrewardᚑprocessorᚋgraphᚋmodelᚐRule(ctx context.Context, sel ast.SelectionSet, v model.Rule) graphql.Marshaler {
