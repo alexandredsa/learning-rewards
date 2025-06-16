@@ -3,7 +3,6 @@
 package model
 
 type CreateRuleInput struct {
-	Type       string       `json:"type"`
 	EventType  string       `json:"eventType"`
 	Count      *int         `json:"count,omitempty"`
 	Conditions *string      `json:"conditions,omitempty"`
@@ -31,7 +30,6 @@ type RewardInput struct {
 
 type Rule struct {
 	ID         string  `json:"id"`
-	Type       string  `json:"type"`
 	EventType  string  `json:"eventType"`
 	Count      *int    `json:"count,omitempty"`
 	Conditions *string `json:"conditions,omitempty"`
@@ -40,7 +38,6 @@ type Rule struct {
 }
 
 type UpdateRuleInput struct {
-	Type       *string      `json:"type,omitempty"`
 	EventType  *string      `json:"eventType,omitempty"`
 	Count      *int         `json:"count,omitempty"`
 	Conditions *string      `json:"conditions,omitempty"`

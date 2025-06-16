@@ -28,7 +28,6 @@ func convertToGraphQLRule(rule *models.Rule) *model.Rule {
 	condStr := string(conditionsJSON)
 	return &model.Rule{
 		ID:         rule.ID,
-		Type:       string(rule.Type),
 		EventType:  rule.EventType,
 		Count:      countPtr,
 		Conditions: &condStr,

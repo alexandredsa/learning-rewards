@@ -7,9 +7,6 @@ import (
 	"time"
 )
 
-// RuleType represents the type of rule
-type RuleType string
-
 // RewardType represents the type of reward
 type RewardType string
 
@@ -21,7 +18,6 @@ const (
 // Rule represents a reward rule
 type Rule struct {
 	ID         string         `json:"id" gorm:"primaryKey"`
-	Type       RuleType       `json:"type"`
 	EventType  string         `json:"event_type"`
 	Count      int            `json:"count,omitempty"`
 	Conditions RuleConditions `json:"conditions" gorm:"type:jsonb"`

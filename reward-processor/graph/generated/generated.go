@@ -69,7 +69,6 @@ type ComplexityRoot struct {
 		EventType  func(childComplexity int) int
 		ID         func(childComplexity int) int
 		Reward     func(childComplexity int) int
-		Type       func(childComplexity int) int
 	}
 }
 
@@ -207,13 +206,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.Rule.Reward(childComplexity), true
 
-	case "Rule.type":
-		if e.complexity.Rule.Type == nil {
-			break
-		}
-
-		return e.complexity.Rule.Type(childComplexity), true
-
 	}
 	return 0, false
 }
@@ -334,7 +326,6 @@ type Mutation {
 
 type Rule {
   id: ID!
-  type: String!
   eventType: String!
   count: Int
   conditions: JSON
@@ -349,7 +340,6 @@ type Reward {
 }
 
 input CreateRuleInput {
-  type: String!
   eventType: String!
   count: Int
   conditions: JSON
@@ -358,7 +348,6 @@ input CreateRuleInput {
 }
 
 input UpdateRuleInput {
-  type: String
   eventType: String
   count: Int
   conditions: JSON
@@ -677,8 +666,6 @@ func (ec *executionContext) fieldContext_Mutation_createRule(ctx context.Context
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_Rule_id(ctx, field)
-			case "type":
-				return ec.fieldContext_Rule_type(ctx, field)
 			case "eventType":
 				return ec.fieldContext_Rule_eventType(ctx, field)
 			case "count":
@@ -748,8 +735,6 @@ func (ec *executionContext) fieldContext_Mutation_updateRule(ctx context.Context
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_Rule_id(ctx, field)
-			case "type":
-				return ec.fieldContext_Rule_type(ctx, field)
 			case "eventType":
 				return ec.fieldContext_Rule_eventType(ctx, field)
 			case "count":
@@ -819,8 +804,6 @@ func (ec *executionContext) fieldContext_Query_rules(_ context.Context, field gr
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_Rule_id(ctx, field)
-			case "type":
-				return ec.fieldContext_Rule_type(ctx, field)
 			case "eventType":
 				return ec.fieldContext_Rule_eventType(ctx, field)
 			case "count":
@@ -876,8 +859,6 @@ func (ec *executionContext) fieldContext_Query_rule(ctx context.Context, field g
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_Rule_id(ctx, field)
-			case "type":
-				return ec.fieldContext_Rule_type(ctx, field)
 			case "eventType":
 				return ec.fieldContext_Rule_eventType(ctx, field)
 			case "count":
@@ -1205,50 +1186,6 @@ func (ec *executionContext) fieldContext_Rule_id(_ context.Context, field graphq
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Rule_type(ctx context.Context, field graphql.CollectedField, obj *model.Rule) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Rule_type(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Type, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Rule_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Rule",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -3434,20 +3371,13 @@ func (ec *executionContext) unmarshalInputCreateRuleInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"type", "eventType", "count", "conditions", "reward", "enabled"}
+	fieldsInOrder := [...]string{"eventType", "count", "conditions", "reward", "enabled"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "type":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Type = data
 		case "eventType":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("eventType"))
 			data, err := ec.unmarshalNString2string(ctx, v)
@@ -3537,20 +3467,13 @@ func (ec *executionContext) unmarshalInputUpdateRuleInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"type", "eventType", "count", "conditions", "reward", "enabled"}
+	fieldsInOrder := [...]string{"eventType", "count", "conditions", "reward", "enabled"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "type":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Type = data
 		case "eventType":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("eventType"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
@@ -3806,11 +3729,6 @@ func (ec *executionContext) _Rule(ctx context.Context, sel ast.SelectionSet, obj
 			out.Values[i] = graphql.MarshalString("Rule")
 		case "id":
 			out.Values[i] = ec._Rule_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "type":
-			out.Values[i] = ec._Rule_type(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}

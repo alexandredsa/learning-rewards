@@ -80,8 +80,8 @@ func (e *Engine) EvaluateEvent(ctx context.Context, event models.UserEvent) ([]m
 
 		e.logger.Debug("Rule conditions met, evaluating rule",
 			zap.String("rule_id", rule.ID),
-			zap.String("rule_type", string(rule.Type)),
-			zap.String("user_id", event.UserID))
+			zap.String("user_id", event.UserID),
+		)
 
 		// Get the appropriate count based on rule type
 		ruleCategory := rule.Conditions["category"]

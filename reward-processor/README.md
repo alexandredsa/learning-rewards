@@ -51,7 +51,6 @@ The service exposes a GraphQL API for managing reward rules. The API is availabl
 query {
   rules {
     id
-    type
     eventType
     count
     conditions
@@ -70,7 +69,6 @@ query {
 query {
   rule(id: "rule-001") {
     id
-    type
     eventType
     count
     conditions
@@ -90,7 +88,6 @@ query {
 ```graphql
 mutation {
   createRule(input: {
-    type: "MILESTONE"
     eventType: "COURSE_COMPLETED"
     count: 5
     conditions: {
@@ -151,7 +148,6 @@ mutation {
 
 #### Rule
 - `id`: Unique identifier
-- `type`: Rule type (`SINGLE_EVENT` or `MILESTONE`)
 - `eventType`: Type of event to match
 - `count`: Required count for milestone rules
 - `conditions`: JSON object with matching conditions
@@ -172,7 +168,6 @@ Triggers a reward when a single event matches the conditions:
 ```json
 {
   "id": "rule-001",
-  "type": "SINGLE_EVENT",
   "event_type": "COURSE_COMPLETED",
   "conditions": {
     "category": "MATH"
@@ -192,7 +187,6 @@ Tracks event counts in the database and triggers when the target is reached:
 ```json
 {
   "id": "rule-002",
-  "type": "MILESTONE",
   "event_type": "COURSE_COMPLETED",
   "count": 5,
   "conditions": {
@@ -266,7 +260,3 @@ Run the test suite:
 go test ./...
 ```
 
-The test suite includes:
-- Unit tests for the rules engine
-- Integration tests for database operations
-- Mock tests for Kafka interactions

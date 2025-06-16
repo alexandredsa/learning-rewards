@@ -10,7 +10,6 @@ type Mutation {
 
 type Rule {
   id: ID!
-  type: String!
   eventType: String!
   count: Int
   conditions: JSON
@@ -25,7 +24,6 @@ type Reward {
 }
 
 input CreateRuleInput {
-  type: String!
   eventType: String!
   count: Int
   conditions: JSON
@@ -34,7 +32,6 @@ input CreateRuleInput {
 }
 
 input UpdateRuleInput {
-  type: String
   eventType: String
   count: Int
   conditions: JSON
