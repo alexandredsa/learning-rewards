@@ -10,3 +10,7 @@ Content-Type: application/json
 POST http://localhost:8081/events
 Content-Type: application/json
 @bodies/course_math_completed.json
+
+POST http://localhost:8081/events
+Content-Type: application/json
+@bodies/course_programming_completed.json

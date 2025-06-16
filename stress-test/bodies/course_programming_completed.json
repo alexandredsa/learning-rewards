@@ -1,0 +1,8 @@
+{
+    "user_id": "abc-678",
+    "event_type": "COURSE_COMPLETED",
+    "course_id": "course-xyz",
+    "category": "PROGRAMMING",
+    "timestamp": "2025-06-16T14:00:00Z"
+  }
+  
