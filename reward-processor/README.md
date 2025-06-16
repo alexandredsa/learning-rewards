@@ -44,7 +44,55 @@ The service can be configured using environment variables:
 
 The service exposes a GraphQL API for managing reward rules. The API is available at `/graphql` endpoint.
 
-### Queries
+### Schema Overview
+
+#### Types
+
+##### Rule
+- `id`: ID! - Unique identifier
+- `eventType`: String! - Type of event to match
+- `count`: Int - Required count for milestone rules
+- `conditions`: RuleConditions - Structured conditions object
+- `reward`: Reward! - Reward configuration
+- `enabled`: Boolean! - Whether the rule is active
+
+##### RuleConditions
+- `category`: String - Category to match against event data
+
+##### Reward
+- `type`: RewardType! - Reward type (BADGE or POINTS)
+- `amount`: Int - Reward amount (for point-based rewards)
+- `description`: String! - Human-readable description
+
+##### RewardType (Enum)
+- `BADGE` - Badge-based rewards
+- `POINTS` - Point-based rewards
+
+#### Input Types
+
+##### CreateRuleInput
+- `eventType`: String! - Type of event to match
+- `count`: Int - Required count for milestone rules
+- `conditions`: RuleConditionsInput - Rule conditions
+- `reward`: RewardInput! - Reward configuration
+- `enabled`: Boolean! - Whether the rule is active
+
+##### UpdateRuleInput
+- `eventType`: String - Type of event to match
+- `count`: Int - Required count for milestone rules
+- `conditions`: RuleConditionsInput - Rule conditions
+- `reward`: RewardInput - Reward configuration
+- `enabled`: Boolean - Whether the rule is active
+
+##### RuleConditionsInput
+- `category`: String! - Required category to match
+
+##### RewardInput
+- `type`: RewardType! - Reward type (BADGE or POINTS)
+- `amount`: Int - Reward amount (for point-based rewards)
+- `description`: String! - Human-readable description
+
+### Example Queries
 
 #### List All Rules
 ```graphql
@@ -86,7 +134,7 @@ query {
 }
 ```
 
-### Mutations
+### Example Mutations
 
 #### Create Rule
 ```graphql
@@ -98,14 +146,13 @@ mutation {
       category: "MATH"
     }
     reward: {
-      type: "POINTS"
+      type: POINTS
       amount: 100
       description: "Completed 5 math courses"
     }
     enabled: true
   }) {
     id
-    type
     eventType
     count
     conditions {
@@ -132,14 +179,13 @@ mutation {
         category: "SCIENCE"
       }
       reward: {
-        type: "POINTS"
+        type: POINTS
         amount: 200
         description: "Updated reward description"
       }
     }
   ) {
     id
-    type
     eventType
     count
     conditions {
@@ -152,66 +198,6 @@ mutation {
     }
     enabled
   }
-}
-```
-
-### Types
-
-#### Rule
-- `id`: Unique identifier
-- `eventType`: Type of event to match
-- `count`: Required count for milestone rules
-- `conditions`: Structured conditions object with category field
-- `reward`: Reward configuration
-- `enabled`: Whether the rule is active
-
-#### RuleConditions
-- `category`: Category to match against event data
-
-#### Reward
-- `type`: Reward type (e.g., `POINTS`, `BADGE`)
-- `amount`: Reward amount (for point-based rewards)
-- `description`: Human-readable description
-
-## Rule Types
-
-### Single Event Rule
-
-Triggers a reward when a single event matches the conditions:
-
-```json
-{
-  "id": "rule-001",
-  "event_type": "COURSE_COMPLETED",
-  "conditions": {
-    "category": "MATH"
-  },
-  "reward": {
-    "type": "BADGE",
-    "description": "Finished a Math course"
-  },
-  "enabled": true
-}
-```
-
-### Milestone Rule
-
-Tracks event counts in the database and triggers when the target is reached:
-
-```json
-{
-  "id": "rule-002",
-  "event_type": "COURSE_COMPLETED",
-  "count": 5,
-  "conditions": {
-    "category": "MATH"
-  },
-  "reward": {
-    "type": "POINTS",
-    "amount": 100,
-    "description": "Completed 5 math courses"
-  },
-  "enabled": true
 }
 ```
 
@@ -273,4 +259,3 @@ Run the test suite:
 ```bash
 go test ./...
 ```
-
