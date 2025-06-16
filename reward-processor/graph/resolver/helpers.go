@@ -25,11 +25,9 @@ func ConvertToGraphQLRule(rule *models.Rule) *model.Rule {
 	}
 
 	var conditions *model.RuleConditions
-	if rule.Conditions != nil {
-		if rule.Conditions.Category != nil {
-			conditions = &model.RuleConditions{
-				Category: rule.Conditions.Category,
-			}
+	if rule.ConditionsCategory != nil {
+		conditions = &model.RuleConditions{
+			Category: rule.ConditionsCategory,
 		}
 	}
 
@@ -59,11 +57,9 @@ func ConvertGraphQLRuleToModel(rule interface{}) *models.Rule {
 		}
 
 		// Convert conditions
-		var conditions *models.RuleConditions
+		var conditionsCategory *string
 		if r.Conditions != nil && r.Conditions.Category != nil {
-			conditions = &models.RuleConditions{
-				Category: r.Conditions.Category,
-			}
+			conditionsCategory = r.Conditions.Category
 		}
 
 		// Convert reward amount from pointer to value
@@ -73,9 +69,9 @@ func ConvertGraphQLRuleToModel(rule interface{}) *models.Rule {
 		}
 
 		return &models.Rule{
-			EventType:  r.EventType,
-			Count:      count,
-			Conditions: conditions,
+			EventType:          r.EventType,
+			Count:              count,
+			ConditionsCategory: conditionsCategory,
 			Reward: models.Reward{
 				Type:        models.RewardType(r.Reward.Type),
 				Amount:      rewardAmount,
@@ -94,9 +90,7 @@ func ConvertGraphQLRuleToModel(rule interface{}) *models.Rule {
 			rule.Count = *r.Count
 		}
 		if r.Conditions != nil && r.Conditions.Category != nil {
-			rule.Conditions = &models.RuleConditions{
-				Category: r.Conditions.Category,
-			}
+			rule.ConditionsCategory = r.Conditions.Category
 		}
 		if r.Reward != nil {
 			if r.Reward.Type != "" {

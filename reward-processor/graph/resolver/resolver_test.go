@@ -78,11 +78,9 @@ func TestCreateRule(t *testing.T) {
 			name: "create rule with conditions",
 			setupMocks: func(m *MockRuleRepository) {
 				m.On("CreateRule", mock.Anything, &models.Rule{
-					EventType: "COURSE_COMPLETED",
-					Count:     5,
-					Conditions: &models.RuleConditions{
-						Category: ptrString("MATH"),
-					},
+					EventType:          "COURSE_COMPLETED",
+					Count:              5,
+					ConditionsCategory: ptrString("MATH"),
 					Reward: models.Reward{
 						Type:        models.RewardType("POINTS"),
 						Amount:      100,
@@ -174,9 +172,9 @@ func TestUpdateRule(t *testing.T) {
 			name: "update rule conditions",
 			setupMocks: func(m *MockRuleRepository) {
 				existingRule := &models.Rule{
-					ID:         "rule-001",
-					EventType:  "COURSE_COMPLETED",
-					Conditions: &models.RuleConditions{Category: ptrString("MATH")},
+					ID:                 "rule-001",
+					EventType:          "COURSE_COMPLETED",
+					ConditionsCategory: ptrString("MATH"),
 					Reward: models.Reward{
 						Type:        models.RewardType("POINTS"),
 						Amount:      100,
@@ -185,9 +183,9 @@ func TestUpdateRule(t *testing.T) {
 					Enabled: true,
 				}
 				updatedRule := &models.Rule{
-					ID:         "rule-001",
-					EventType:  "COURSE_COMPLETED",
-					Conditions: &models.RuleConditions{Category: ptrString("SCIENCE")},
+					ID:                 "rule-001",
+					EventType:          "COURSE_COMPLETED",
+					ConditionsCategory: ptrString("SCIENCE"),
 					Reward: models.Reward{
 						Type:        models.RewardType("POINTS"),
 						Amount:      100,
@@ -198,7 +196,7 @@ func TestUpdateRule(t *testing.T) {
 
 				m.On("GetRuleByID", mock.Anything, "rule-001").Return(existingRule, nil)
 				m.On("UpdateRule", mock.Anything, "rule-001", mock.MatchedBy(func(rule *models.Rule) bool {
-					return rule.Conditions.Category != nil && *rule.Conditions.Category == "SCIENCE"
+					return rule.ConditionsCategory != nil && *rule.ConditionsCategory == "SCIENCE"
 				})).Return(nil)
 				m.On("GetRuleByID", mock.Anything, "rule-001").Return(updatedRule, nil)
 			},
@@ -237,12 +235,10 @@ func TestConvertToGraphQLRule(t *testing.T) {
 		{
 			name: "convert rule with conditions",
 			input: &models.Rule{
-				ID:        "rule-001",
-				EventType: "COURSE_COMPLETED",
-				Count:     5,
-				Conditions: &models.RuleConditions{
-					Category: ptrString("MATH"),
-				},
+				ID:                 "rule-001",
+				EventType:          "COURSE_COMPLETED",
+				Count:              5,
+				ConditionsCategory: ptrString("MATH"),
 				Reward: models.Reward{
 					Type:        models.RewardType("POINTS"),
 					Amount:      100,

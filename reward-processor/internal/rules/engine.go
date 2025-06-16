@@ -69,11 +69,11 @@ func (e *Engine) EvaluateEvent(ctx context.Context, event models.UserEvent) ([]m
 		}
 
 		// Check conditions
-		if !e.matchesConditions(event, rule.Conditions) {
+		if !e.matchesConditions(event, rule) {
 			e.logger.Debug("Rule conditions not met",
 				zap.String("rule_id", rule.ID),
 				zap.String("user_id", event.UserID),
-				zap.Any("conditions", rule.Conditions),
+				zap.Any("conditions", rule.ConditionsCategory),
 				zap.Any("event_data", event))
 			continue
 		}
@@ -85,8 +85,8 @@ func (e *Engine) EvaluateEvent(ctx context.Context, event models.UserEvent) ([]m
 
 		var ruleCategory string
 
-		if rule.Conditions != nil && rule.Conditions.Category != nil {
-			ruleCategory = *rule.Conditions.Category
+		if rule.ConditionsCategory != nil {
+			ruleCategory = *rule.ConditionsCategory
 		}
 
 		// Get the appropriate count based on rule type
@@ -134,15 +134,11 @@ func (e *Engine) EvaluateEvent(ctx context.Context, event models.UserEvent) ([]m
 }
 
 // matchesConditions checks if an event matches all conditions in a rule
-func (e *Engine) matchesConditions(event models.UserEvent, conditions *models.RuleConditions) bool {
-	if conditions == nil {
+func (e *Engine) matchesConditions(event models.UserEvent, rule models.Rule) bool {
+	if rule.ConditionsCategory == nil {
 		return true
 	}
-
-	if conditions.Category != nil {
-		return *conditions.Category == event.Category
-	}
-	return true
+	return *rule.ConditionsCategory == event.Category
 }
 
 // GetMilestoneCount returns the current count for a user's milestone

@@ -14,17 +14,12 @@ const (
 
 // Rule represents a reward rule
 type Rule struct {
-	ID         string          `json:"id" gorm:"primaryKey"`
-	EventType  string          `json:"event_type"`
-	Count      int             `json:"count,omitempty"`
-	Conditions *RuleConditions `json:"conditions" gorm:"type:jsonb"`
-	Reward     Reward          `json:"reward" gorm:"embedded"`
-	Enabled    bool            `json:"enabled"`
-}
-
-// RuleConditions represents a set of "extra" attributes for trigger criteria
-type RuleConditions struct {
-	Category *string `json:"category"`
+	ID                 string  `json:"id" gorm:"primaryKey"`
+	EventType          string  `json:"event_type"`
+	Count              int     `json:"count,omitempty"`
+	ConditionsCategory *string `json:"conditions_category" gorm:"column:conditions_category"`
+	Reward             Reward  `json:"reward" gorm:"embedded"`
+	Enabled            bool    `json:"enabled"`
 }
 
 // Reward represents a reward definition

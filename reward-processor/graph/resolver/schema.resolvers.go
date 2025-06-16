@@ -60,8 +60,8 @@ func (r *mutationResolver) UpdateRule(ctx context.Context, id string, input mode
 	if updates.Count > 0 {
 		existingRule.Count = updates.Count
 	}
-	if updates.Conditions != nil {
-		existingRule.Conditions = updates.Conditions
+	if updates.ConditionsCategory != nil {
+		existingRule.ConditionsCategory = updates.ConditionsCategory
 	}
 	if updates.Reward.Type != "" {
 		existingRule.Reward.Type = updates.Reward.Type
