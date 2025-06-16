@@ -53,7 +53,9 @@ query {
     id
     eventType
     count
-    conditions
+    conditions {
+      category
+    }
     reward {
       type
       amount
@@ -71,7 +73,9 @@ query {
     id
     eventType
     count
-    conditions
+    conditions {
+      category
+    }
     reward {
       type
       amount
@@ -91,7 +95,7 @@ mutation {
     eventType: "COURSE_COMPLETED"
     count: 5
     conditions: {
-      "category": "MATH"
+      category: "MATH"
     }
     reward: {
       type: "POINTS"
@@ -104,7 +108,9 @@ mutation {
     type
     eventType
     count
-    conditions
+    conditions {
+      category
+    }
     reward {
       type
       amount
@@ -122,6 +128,9 @@ mutation {
     id: "rule-001"
     input: {
       enabled: false
+      conditions: {
+        category: "SCIENCE"
+      }
       reward: {
         type: "POINTS"
         amount: 200
@@ -133,7 +142,9 @@ mutation {
     type
     eventType
     count
-    conditions
+    conditions {
+      category
+    }
     reward {
       type
       amount
@@ -150,9 +161,12 @@ mutation {
 - `id`: Unique identifier
 - `eventType`: Type of event to match
 - `count`: Required count for milestone rules
-- `conditions`: JSON object with matching conditions
+- `conditions`: Structured conditions object with category field
 - `reward`: Reward configuration
 - `enabled`: Whether the rule is active
+
+#### RuleConditions
+- `category`: Category to match against event data
 
 #### Reward
 - `type`: Reward type (e.g., `POINTS`, `BADGE`)

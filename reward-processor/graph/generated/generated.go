@@ -70,6 +70,10 @@ type ComplexityRoot struct {
 		ID         func(childComplexity int) int
 		Reward     func(childComplexity int) int
 	}
+
+	RuleConditions struct {
+		Category func(childComplexity int) int
+	}
 }
 
 type MutationResolver interface {
@@ -206,6 +210,13 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.Rule.Reward(childComplexity), true
 
+	case "RuleConditions.category":
+		if e.complexity.RuleConditions.Category == nil {
+			break
+		}
+
+		return e.complexity.RuleConditions.Category(childComplexity), true
+
 	}
 	return 0, false
 }
@@ -216,6 +227,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputCreateRuleInput,
 		ec.unmarshalInputRewardInput,
+		ec.unmarshalInputRuleConditionsInput,
 		ec.unmarshalInputUpdateRuleInput,
 	)
 	first := true
@@ -328,9 +340,13 @@ type Rule {
   id: ID!
   eventType: String!
   count: Int
-  conditions: JSON
+  conditions: RuleConditions
   reward: Reward!
   enabled: Boolean!
+}
+
+type RuleConditions {
+  category: String
 }
 
 enum RewardType {
@@ -347,7 +363,7 @@ type Reward {
 input CreateRuleInput {
   eventType: String!
   count: Int
-  conditions: JSON
+  conditions: RuleConditionsInput
   reward: RewardInput!
   enabled: Boolean!
 }
@@ -355,7 +371,7 @@ input CreateRuleInput {
 input UpdateRuleInput {
   eventType: String
   count: Int
-  conditions: JSON
+  conditions: RuleConditionsInput
   reward: RewardInput
   enabled: Boolean
 }
@@ -364,6 +380,10 @@ input RewardInput {
   type: RewardType!
   amount: Int
   description: String!
+}
+
+input RuleConditionsInput {
+  category: String
 }
 
 scalar JSON
@@ -1304,9 +1324,9 @@ func (ec *executionContext) _Rule_conditions(ctx context.Context, field graphql.
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(*model.RuleConditions)
 	fc.Result = res
-	return ec.marshalOJSON2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalORuleConditions2ᚖgithubᚗcomᚋalexandredsaᚋlearningᚑrewardsᚋrewardᚑprocessorᚋgraphᚋmodelᚐRuleConditions(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Rule_conditions(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1316,7 +1336,11 @@ func (ec *executionContext) fieldContext_Rule_conditions(_ context.Context, fiel
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type JSON does not have child fields")
+			switch field.Name {
+			case "category":
+				return ec.fieldContext_RuleConditions_category(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RuleConditions", field.Name)
 		},
 	}
 	return fc, nil
@@ -1413,6 +1437,47 @@ func (ec *executionContext) fieldContext_Rule_enabled(_ context.Context, field g
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RuleConditions_category(ctx context.Context, field graphql.CollectedField, obj *model.RuleConditions) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RuleConditions_category(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Category, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RuleConditions_category(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RuleConditions",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -3399,7 +3464,7 @@ func (ec *executionContext) unmarshalInputCreateRuleInput(ctx context.Context, o
 			it.Count = data
 		case "conditions":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("conditions"))
-			data, err := ec.unmarshalOJSON2ᚖstring(ctx, v)
+			data, err := ec.unmarshalORuleConditionsInput2ᚖgithubᚗcomᚋalexandredsaᚋlearningᚑrewardsᚋrewardᚑprocessorᚋgraphᚋmodelᚐRuleConditionsInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3465,6 +3530,33 @@ func (ec *executionContext) unmarshalInputRewardInput(ctx context.Context, obj a
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputRuleConditionsInput(ctx context.Context, obj any) (model.RuleConditionsInput, error) {
+	var it model.RuleConditionsInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"category"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "category":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("category"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Category = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUpdateRuleInput(ctx context.Context, obj any) (model.UpdateRuleInput, error) {
 	var it model.UpdateRuleInput
 	asMap := map[string]any{}
@@ -3495,7 +3587,7 @@ func (ec *executionContext) unmarshalInputUpdateRuleInput(ctx context.Context, o
 			it.Count = data
 		case "conditions":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("conditions"))
-			data, err := ec.unmarshalOJSON2ᚖstring(ctx, v)
+			data, err := ec.unmarshalORuleConditionsInput2ᚖgithubᚗcomᚋalexandredsaᚋlearningᚑrewardsᚋrewardᚑprocessorᚋgraphᚋmodelᚐRuleConditionsInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3756,6 +3848,42 @@ func (ec *executionContext) _Rule(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var ruleConditionsImplementors = []string{"RuleConditions"}
+
+func (ec *executionContext) _RuleConditions(ctx context.Context, sel ast.SelectionSet, obj *model.RuleConditions) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, ruleConditionsImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RuleConditions")
+		case "category":
+			out.Values[i] = ec._RuleConditions_category(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4556,24 +4684,6 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return res
 }
 
-func (ec *executionContext) unmarshalOJSON2ᚖstring(ctx context.Context, v any) (*string, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := graphql.UnmarshalString(v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOJSON2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	_ = sel
-	_ = ctx
-	res := graphql.MarshalString(*v)
-	return res
-}
-
 func (ec *executionContext) unmarshalORewardInput2ᚖgithubᚗcomᚋalexandredsaᚋlearningᚑrewardsᚋrewardᚑprocessorᚋgraphᚋmodelᚐRewardInput(ctx context.Context, v any) (*model.RewardInput, error) {
 	if v == nil {
 		return nil, nil
@@ -4587,6 +4697,21 @@ func (ec *executionContext) marshalORule2ᚖgithubᚗcomᚋalexandredsaᚋlearni
 		return graphql.Null
 	}
 	return ec._Rule(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalORuleConditions2ᚖgithubᚗcomᚋalexandredsaᚋlearningᚑrewardsᚋrewardᚑprocessorᚋgraphᚋmodelᚐRuleConditions(ctx context.Context, sel ast.SelectionSet, v *model.RuleConditions) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._RuleConditions(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalORuleConditionsInput2ᚖgithubᚗcomᚋalexandredsaᚋlearningᚑrewardsᚋrewardᚑprocessorᚋgraphᚋmodelᚐRuleConditionsInput(ctx context.Context, v any) (*model.RuleConditionsInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputRuleConditionsInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v any) (*string, error) {

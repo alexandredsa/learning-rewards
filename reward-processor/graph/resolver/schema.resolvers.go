@@ -6,12 +6,10 @@ package resolver
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/alexandredsa/learning-rewards/reward-processor/graph/generated"
 	"github.com/alexandredsa/learning-rewards/reward-processor/graph/model"
-	"github.com/alexandredsa/learning-rewards/reward-processor/pkg/models"
 	"go.uber.org/zap"
 )
 
@@ -21,44 +19,7 @@ func (r *mutationResolver) CreateRule(ctx context.Context, input model.CreateRul
 		zap.String("eventType", input.EventType),
 		zap.Any("input", input))
 
-	// Convert conditions from JSON string to map
-	var conditions models.RuleConditions
-	if input.Conditions != nil && *input.Conditions != "" {
-		if err := json.Unmarshal([]byte(*input.Conditions), &conditions); err != nil {
-			r.Logger.Debug("Failed to unmarshal conditions",
-				zap.String("conditions", *input.Conditions),
-				zap.Error(err))
-			return nil, fmt.Errorf("invalid conditions format: %w", err)
-		}
-	}
-
-	// Convert count from pointer to value
-	count := 0
-	if input.Count != nil {
-		count = *input.Count
-	}
-
-	// Convert reward amount from pointer to value
-	rewardAmount := 0
-	if input.Reward.Amount != nil {
-		rewardAmount = *input.Reward.Amount
-	}
-
-	rule := &models.Rule{
-		EventType:  input.EventType,
-		Count:      count,
-		Conditions: conditions,
-		Reward: models.Reward{
-			Type:        models.RewardType(input.Reward.Type),
-			Amount:      rewardAmount,
-			Description: input.Reward.Description,
-		},
-		Enabled: input.Enabled,
-	}
-
-	r.Logger.Debug("Attempting to create rule in repository",
-		zap.Any("rule", rule))
-
+	rule := ConvertGraphQLRuleToModel(&input)
 	if err := r.RuleRepository.CreateRule(ctx, rule); err != nil {
 		r.Logger.Debug("Failed to create rule in repository",
 			zap.Any("rule", rule),
@@ -68,7 +29,7 @@ func (r *mutationResolver) CreateRule(ctx context.Context, input model.CreateRul
 
 	r.Logger.Debug("Successfully created rule",
 		zap.String("ruleID", rule.ID))
-	return convertToGraphQLRule(rule), nil
+	return ConvertToGraphQLRule(rule), nil
 }
 
 // UpdateRule is the resolver for the updateRule field.
@@ -91,34 +52,28 @@ func (r *mutationResolver) UpdateRule(ctx context.Context, id string, input mode
 		return nil, fmt.Errorf("rule not found: %s", id)
 	}
 
-	if input.EventType != nil {
-		existingRule.EventType = *input.EventType
+	// Apply updates
+	updates := ConvertGraphQLRuleToModel(&input)
+	if updates.EventType != "" {
+		existingRule.EventType = updates.EventType
 	}
-	if input.Count != nil {
-		existingRule.Count = *input.Count
+	if updates.Count > 0 {
+		existingRule.Count = updates.Count
 	}
-	if input.Conditions != nil {
-		var conditions models.RuleConditions
-		if *input.Conditions != "" {
-			if err := json.Unmarshal([]byte(*input.Conditions), &conditions); err != nil {
-				return nil, fmt.Errorf("invalid conditions format: %w", err)
-			}
-		}
-		existingRule.Conditions = conditions
+	if updates.Conditions != nil {
+		existingRule.Conditions = updates.Conditions
 	}
-	if input.Reward != nil {
-		if input.Reward.Type != "" {
-			existingRule.Reward.Type = models.RewardType(input.Reward.Type)
-		}
-		if input.Reward.Amount != nil {
-			existingRule.Reward.Amount = *input.Reward.Amount
-		}
-		if input.Reward.Description != "" {
-			existingRule.Reward.Description = input.Reward.Description
-		}
+	if updates.Reward.Type != "" {
+		existingRule.Reward.Type = updates.Reward.Type
 	}
-	if input.Enabled != nil {
-		existingRule.Enabled = *input.Enabled
+	if updates.Reward.Amount > 0 {
+		existingRule.Reward.Amount = updates.Reward.Amount
+	}
+	if updates.Reward.Description != "" {
+		existingRule.Reward.Description = updates.Reward.Description
+	}
+	if updates.Enabled {
+		existingRule.Enabled = updates.Enabled
 	}
 
 	if err := r.RuleRepository.UpdateRule(ctx, id, existingRule); err != nil {
@@ -130,7 +85,7 @@ func (r *mutationResolver) UpdateRule(ctx context.Context, id string, input mode
 	}
 
 	// Fetch the updated rule to return the complete state
-	updatedRule, err := r.RuleRepository.GetRuleByID(ctx, id)
+	finalRule, err := r.RuleRepository.GetRuleByID(ctx, id)
 	if err != nil {
 		r.Logger.Debug("Failed to fetch updated rule",
 			zap.String("ruleID", id),
@@ -140,7 +95,7 @@ func (r *mutationResolver) UpdateRule(ctx context.Context, id string, input mode
 
 	r.Logger.Debug("Successfully updated rule",
 		zap.String("ruleID", id))
-	return convertToGraphQLRule(updatedRule), nil
+	return ConvertToGraphQLRule(finalRule), nil
 }
 
 // Rules is the resolver for the rules field.
@@ -152,7 +107,7 @@ func (r *queryResolver) Rules(ctx context.Context) ([]*model.Rule, error) {
 
 	result := make([]*model.Rule, len(rules))
 	for i, rule := range rules {
-		result[i] = convertToGraphQLRule(&rule)
+		result[i] = ConvertToGraphQLRule(&rule)
 	}
 	return result, nil
 }
@@ -166,7 +121,7 @@ func (r *queryResolver) Rule(ctx context.Context, id string) (*model.Rule, error
 	if rule == nil {
 		return nil, nil
 	}
-	return convertToGraphQLRule(rule), nil
+	return ConvertToGraphQLRule(rule), nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

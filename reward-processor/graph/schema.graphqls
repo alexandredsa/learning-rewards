@@ -12,9 +12,13 @@ type Rule {
   id: ID!
   eventType: String!
   count: Int
-  conditions: JSON
+  conditions: RuleConditions
   reward: Reward!
   enabled: Boolean!
+}
+
+type RuleConditions {
+  category: String
 }
 
 enum RewardType {
@@ -31,7 +35,7 @@ type Reward {
 input CreateRuleInput {
   eventType: String!
   count: Int
-  conditions: JSON
+  conditions: RuleConditionsInput
   reward: RewardInput!
   enabled: Boolean!
 }
@@ -39,7 +43,7 @@ input CreateRuleInput {
 input UpdateRuleInput {
   eventType: String
   count: Int
-  conditions: JSON
+  conditions: RuleConditionsInput
   reward: RewardInput
   enabled: Boolean
 }
@@ -48,6 +52,10 @@ input RewardInput {
   type: RewardType!
   amount: Int
   description: String!
+}
+
+input RuleConditionsInput {
+  category: String!
 }
 
 scalar JSON

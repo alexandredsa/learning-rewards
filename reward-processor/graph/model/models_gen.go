@@ -10,11 +10,11 @@ import (
 )
 
 type CreateRuleInput struct {
-	EventType  string       `json:"eventType"`
-	Count      *int         `json:"count,omitempty"`
-	Conditions *string      `json:"conditions,omitempty"`
-	Reward     *RewardInput `json:"reward"`
-	Enabled    bool         `json:"enabled"`
+	EventType  string               `json:"eventType"`
+	Count      *int                 `json:"count,omitempty"`
+	Conditions *RuleConditionsInput `json:"conditions,omitempty"`
+	Reward     *RewardInput         `json:"reward"`
+	Enabled    bool                 `json:"enabled"`
 }
 
 type Mutation struct {
@@ -36,20 +36,28 @@ type RewardInput struct {
 }
 
 type Rule struct {
-	ID         string  `json:"id"`
-	EventType  string  `json:"eventType"`
-	Count      *int    `json:"count,omitempty"`
-	Conditions *string `json:"conditions,omitempty"`
-	Reward     *Reward `json:"reward"`
-	Enabled    bool    `json:"enabled"`
+	ID         string          `json:"id"`
+	EventType  string          `json:"eventType"`
+	Count      *int            `json:"count,omitempty"`
+	Conditions *RuleConditions `json:"conditions,omitempty"`
+	Reward     *Reward         `json:"reward"`
+	Enabled    bool            `json:"enabled"`
+}
+
+type RuleConditions struct {
+	Category *string `json:"category,omitempty"`
+}
+
+type RuleConditionsInput struct {
+	Category *string `json:"category,omitempty"`
 }
 
 type UpdateRuleInput struct {
-	EventType  *string      `json:"eventType,omitempty"`
-	Count      *int         `json:"count,omitempty"`
-	Conditions *string      `json:"conditions,omitempty"`
-	Reward     *RewardInput `json:"reward,omitempty"`
-	Enabled    *bool        `json:"enabled,omitempty"`
+	EventType  *string              `json:"eventType,omitempty"`
+	Count      *int                 `json:"count,omitempty"`
+	Conditions *RuleConditionsInput `json:"conditions,omitempty"`
+	Reward     *RewardInput         `json:"reward,omitempty"`
+	Enabled    *bool                `json:"enabled,omitempty"`
 }
 
 type RewardType string

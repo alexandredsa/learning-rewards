@@ -33,13 +33,18 @@ func SeedRules(ctx context.Context, db *gorm.DB, log *zap.Logger) error {
 		return nil
 	}
 
+	var (
+		categoryMath        string = "MATH"
+		categoryProgramming string = "PROGRAMMING"
+	)
+
 	// Define initial rules
 	initialRules := []models.Rule{
 		{
 			ID:        "rule-001",
 			EventType: "COURSE_COMPLETED",
-			Conditions: map[string]string{
-				"category": "MATH",
+			Conditions: &models.RuleConditions{
+				Category: &categoryMath,
 			},
 			Count: 1,
 			Reward: models.Reward{
@@ -52,8 +57,8 @@ func SeedRules(ctx context.Context, db *gorm.DB, log *zap.Logger) error {
 			ID:        "rule-002",
 			EventType: "COURSE_COMPLETED",
 			Count:     5,
-			Conditions: map[string]string{
-				"category": "MATH",
+			Conditions: &models.RuleConditions{
+				Category: &categoryMath,
 			},
 			Reward: models.Reward{
 				Type:        models.PointsReward,
@@ -63,10 +68,9 @@ func SeedRules(ctx context.Context, db *gorm.DB, log *zap.Logger) error {
 			Enabled: true,
 		},
 		{
-			ID:         "rule-003",
-			EventType:  "COURSE_COMPLETED",
-			Count:      30,
-			Conditions: map[string]string{},
+			ID:        "rule-003",
+			EventType: "COURSE_COMPLETED",
+			Count:     30,
 			Reward: models.Reward{
 				Type:        models.PointsReward,
 				Amount:      30,
@@ -75,10 +79,9 @@ func SeedRules(ctx context.Context, db *gorm.DB, log *zap.Logger) error {
 			Enabled: true,
 		},
 		{
-			ID:         "rule-004",
-			EventType:  "CHAPTER_COMPLETED",
-			Count:      10,
-			Conditions: map[string]string{},
+			ID:        "rule-004",
+			EventType: "CHAPTER_COMPLETED",
+			Count:     10,
 			Reward: models.Reward{
 				Type:        models.PointsReward,
 				Amount:      10,
@@ -90,8 +93,8 @@ func SeedRules(ctx context.Context, db *gorm.DB, log *zap.Logger) error {
 			ID:        "rule-005",
 			EventType: "COURSE_COMPLETED",
 			Count:     1,
-			Conditions: map[string]string{
-				"category": "PROGRAMMING",
+			Conditions: &models.RuleConditions{
+				Category: &categoryProgramming,
 			},
 			Reward: models.Reward{
 				Type:        models.BadgeReward,
@@ -103,8 +106,8 @@ func SeedRules(ctx context.Context, db *gorm.DB, log *zap.Logger) error {
 			ID:        "rule-006",
 			EventType: "COURSE_COMPLETED",
 			Count:     5,
-			Conditions: map[string]string{
-				"category": "PROGRAMMING",
+			Conditions: &models.RuleConditions{
+				Category: &categoryProgramming,
 			},
 			Reward: models.Reward{
 				Type:        models.PointsReward,

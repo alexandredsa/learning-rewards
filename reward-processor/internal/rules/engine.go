@@ -83,8 +83,13 @@ func (e *Engine) EvaluateEvent(ctx context.Context, event models.UserEvent) ([]m
 			zap.String("user_id", event.UserID),
 		)
 
+		var ruleCategory string
+
+		if rule.Conditions != nil && rule.Conditions.Category != nil {
+			ruleCategory = *rule.Conditions.Category
+		}
+
 		// Get the appropriate count based on rule type
-		ruleCategory := rule.Conditions["category"]
 		count, err := e.eventRepo.GetCount(ctx, event.UserID, event.EventType, ruleCategory)
 		if err != nil {
 			e.logger.Error("Failed to get count",
@@ -129,15 +134,13 @@ func (e *Engine) EvaluateEvent(ctx context.Context, event models.UserEvent) ([]m
 }
 
 // matchesConditions checks if an event matches all conditions in a rule
-func (e *Engine) matchesConditions(event models.UserEvent, conditions map[string]string) bool {
-	for key, value := range conditions {
-		switch key {
-		case "category":
-			if event.Category != value {
-				return false
-			}
-			// Add more condition types here as needed
-		}
+func (e *Engine) matchesConditions(event models.UserEvent, conditions *models.RuleConditions) bool {
+	if conditions == nil {
+		return true
+	}
+
+	if conditions.Category != nil {
+		return *conditions.Category == event.Category
 	}
 	return true
 }
